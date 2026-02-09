@@ -1,10 +1,10 @@
 from django.db import models
-from ..models.societies import User, Theme, SchemeField, ArgumentScheme
+from backend.models import User, ArgumentTheme, SchemeField, ArgumentScheme
 
 class Argument(models.Model):
     """Defines an argument."""
     author = models.ForeignKey(User, on_delete=models.SET_DEFAULT, default=User.deleted_user)
-    theme = models.ForeignKey(Theme, on_delete=models.SET_DEFAULT, default=Theme.get_or_create_other_theme)
+    theme = models.ForeignKey(ArgumentTheme, on_delete=models.SET_DEFAULT, default=ArgumentTheme.get_or_create_other_theme)
     scheme = models.ForeignKey(ArgumentScheme, on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
 

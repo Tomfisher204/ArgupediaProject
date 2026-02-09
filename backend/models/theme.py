@@ -1,5 +1,5 @@
 from django.db import models
-from ..models.societies import User
+from backend.models import User
 
 class ArgumentTheme(models.Model):
     """Defines a theme for arguments."""
@@ -9,7 +9,7 @@ class ArgumentTheme(models.Model):
     creator = models.ForeignKey(User, on_delete=models.SET_DEFAULT, default=User.deleted_user)
 
     @classmethod
-    def get_or_create_other_topic(cls):
+    def get_or_create_other_theme(cls):
         """Returns the 'Other' argument topic instance."""
         topic, _ = ArgumentTheme.objects.get_or_create(title="Other")
         return topic

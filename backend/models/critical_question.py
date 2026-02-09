@@ -1,5 +1,5 @@
 from django.db import models
-from ..models.societies import ArgumentScheme
+from backend.models import ArgumentScheme
 
 class CriticalQuestion(models.Model):
     """Defines a critical question used to attack or support an argument."""

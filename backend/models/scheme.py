@@ -1,5 +1,5 @@
 from django.db import models
-from .user import User
+from backend.models import User
 
 class ArgumentScheme(models.Model):
     """Defines an argument scheme."""

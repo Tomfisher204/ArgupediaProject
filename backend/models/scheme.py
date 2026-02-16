@@ -12,4 +12,3 @@ class SchemeField(models.Model):
     """Defines one field in a scheme"""
     scheme = models.ForeignKey(ArgumentScheme, related_name="fields",on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-

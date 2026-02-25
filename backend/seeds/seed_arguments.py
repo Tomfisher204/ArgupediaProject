@@ -1,4 +1,4 @@
-from backend.models import Argument, ArgumentFieldValue, ArgumentVotes, User, ArgumentTheme, ArgumentScheme, SchemeField
+from backend.models import Argument, ArgumentFieldValue, ArgumentVote, User, ArgumentTheme, ArgumentScheme, SchemeField
 from faker import Faker
 import random
 
@@ -77,7 +77,7 @@ def try_create_argument(data):
     voters = random.sample(users, num_votes) if users else []
     for user in voters:
         is_upvote = random.choice([True, False])
-        vote = ArgumentVotes.objects.create(
+        vote = ArgumentVote.objects.create(
             argument=argument,
             user=user,
             is_upvote=is_upvote

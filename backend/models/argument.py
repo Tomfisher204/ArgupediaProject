@@ -14,7 +14,7 @@ class ArgumentFieldValue(models.Model):
     scheme_field = models.ForeignKey(SchemeField, on_delete=models.CASCADE)
     value = models.TextField()
 
-class ArgumentVotes(models.Model):
+class ArgumentVote(models.Model):
     """Defines votes for an argument."""
     argument = models.ForeignKey(Argument, related_name="votes", on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)

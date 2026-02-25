@@ -1,6 +1,8 @@
+import re
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
+from django.core.validators import EmailValidator
+from django.core.exceptions import ValidationError
 
 class User(AbstractUser):
     """Defines a user in the system."""
@@ -19,16 +21,12 @@ class User(AbstractUser):
         help_text="Specific permissions for this user.",
         verbose_name="user permissions",
     )
-    password_validator = RegexValidator(
-        r'^(?=.*[A-Z])(?=.*\d)', 
-        'Password must contain at least one uppercase letter and one number.'
-    )
 
     username = models.CharField(max_length=50, unique=True)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     email = models.EmailField(unique=True, blank=False, validators=[EmailValidator()])
-    password = models.CharField(max_length=50, validators=[MinLengthValidator(8), password_validator])
+    password = models.CharField(max_length=50)
     is_admin = models.BooleanField(default=False)
 
     @classmethod
@@ -43,3 +41,13 @@ class User(AbstractUser):
             }
         )
         return user.id
+
+    def clean(self):
+        """Custom validation for the password field using Django's validators."""
+        super().clean()
+        if self.password:
+            password_regex = r'^(?=.*[A-Z])(?=.*\d).{8,}$'
+            if not re.match(password_regex, self.password):
+                raise ValidationError({
+                    'password': "Password must be at least 8 characters long, contain at least one uppercase letter and one number."
+                })

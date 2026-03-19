@@ -6,3 +6,4 @@ class CriticalQuestion(models.Model):
     scheme = models.ForeignKey(ArgumentScheme, on_delete=models.CASCADE)
     question = models.TextField()
     date_created = models.DateTimeField(auto_now_add=True)
+    two_way = models.BooleanField(default=False)

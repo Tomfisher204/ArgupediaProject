@@ -13,9 +13,3 @@ class ArgumentFieldValue(models.Model):
     argument = models.ForeignKey(Argument, related_name="field_values", on_delete=models.CASCADE)
     scheme_field = models.ForeignKey(SchemeField, on_delete=models.CASCADE)
     value = models.TextField()
-
-class ArgumentVote(models.Model):
-    """Defines votes for an argument."""
-    argument = models.ForeignKey(Argument, related_name="votes", on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    is_upvote = models.BooleanField()

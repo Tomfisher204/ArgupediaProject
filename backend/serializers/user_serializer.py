@@ -40,6 +40,10 @@ class UserSerializer(serializers.ModelSerializer):
     """Serializes the current user for the /api/auth/me/ endpoint.
     This is what gets loaded into AuthContext as `user`."""
 
+    argument_count = serializers.SerializerMethodField()
+    reputation = serializers.SerializerMethodField()
+    win_rate = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
@@ -50,5 +54,20 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name',
             'date_joined',
             'is_admin',
+            'argument_count',
+            'reputation',
+            'win_rate',
         )
         read_only_fields = fields
+
+    def get_argument_count(self, obj):
+        return obj.argument_set.count()
+
+    def get_reputation(self, obj):
+        # Simple reputation calculation - could be made more complex
+        return obj.argument_set.count() * 10  # 10 points per argument
+
+    def get_win_rate(self, obj):
+        # For now, return None - this would need more complex logic
+        # to determine "wins" based on argument links/attacks
+        return None

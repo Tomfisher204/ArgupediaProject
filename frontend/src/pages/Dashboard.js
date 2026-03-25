@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
@@ -7,7 +7,6 @@ import './Dashboard.css';
 // Update the `key` values to match whatever your /api/auth/me/ endpoint returns.
 const STAT_FIELDS = [
   { label: 'Arguments made', key: 'argument_count' },
-  { label: 'Votes received',  key: 'vote_count' },
   { label: 'Reputation',      key: 'reputation' },
   { label: 'Win rate',        key: 'win_rate', format: (v) => v != null ? `${v}%` : null },
 ];
@@ -19,6 +18,7 @@ const fmt = (value, format) => {
 
 const Dashboard = () => {
   const { user, loading, logout } = useAuth();
+  const navigate = useNavigate();
 
   if (loading) return <div className="page-loading">Loading…</div>;
   if (!user)   return <Navigate to="/" replace />;
@@ -29,12 +29,15 @@ const Dashboard = () => {
     <div className="dashboard">
 
       {/* Top bar */}
-      <header className="dash-header">
-        <div className="dash-header-inner">
-          <div className="dash-logo">
+      <header className="page-header">
+        <div className="page-header-inner">
+          <div className="header-logo" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}>
             <span className="logo-mark-sm">A</span>
             <span className="logo-text-sm">argupedia</span>
           </div>
+          <nav className="header-nav">
+            <button className="nav-link" onClick={() => navigate('/themes')}>Themes</button>
+          </nav>
           <button className="logout-btn" onClick={logout}>Log out</button>
         </div>
       </header>

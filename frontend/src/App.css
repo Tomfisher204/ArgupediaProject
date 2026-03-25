@@ -1,68 +1,50 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500&display=swap');
- 
+
 :root {
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'DM Sans', sans-serif;
- 
-  --color-ink: #1a1a18;
-  --color-ink-muted: #6b6b65;
-  --color-ink-faint: #b0b0a8;
-  --color-surface: #fafaf7;
+
+  --color-ink:          #1a1a18;
+  --color-ink-muted:    #6b6b65;
+  --color-ink-faint:    #b0b0a8;
+  --color-surface:      #fafaf7;
   --color-surface-raised: #ffffff;
-  --color-border: #e4e4de;
-  --color-accent: #2d5a3d;
+  --color-border:       #e4e4de;
+  --color-accent:       #2d5a3d;
   --color-accent-light: #eef4f0;
-  --color-accent-text: #1d3d29;
- 
-  --nav-height: 60px;
+  --color-accent-text:  #1d3d29;
+
   --radius-sm: 6px;
   --radius-md: 10px;
 }
- 
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
- 
+
 html {
-  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
- 
+
 body {
   font-family: var(--font-body);
   background: var(--color-surface);
   color: var(--color-ink);
   line-height: 1.6;
 }
- 
-button {
+
+button, input, select, textarea {
   font-family: var(--font-body);
 }
- 
-a {
-  color: inherit;
-}
- 
-/* Shared utility */
-.cta-primary {
-  display: inline-flex;
+
+.page-loading {
+  height: 100vh;
+  display: flex;
   align-items: center;
-  padding: 9px 18px;
-  background: var(--color-accent);
-  color: #fff;
-  font-family: var(--font-body);
+  justify-content: center;
   font-size: 14px;
-  font-weight: 500;
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
- 
-.cta-primary:hover {
-  opacity: 0.88;
+  color: var(--color-ink-muted);
 }

@@ -1,144 +1,179 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './LandingPage.css';
 
-const FEATURED_ARGUMENTS = [
+const FEATURES = [
   {
-    id: 1,
-    title: 'Universal Basic Income would reduce economic inequality',
-    author: '[ author_name ]',
-    stance: 'For',
-    replies: 24,
-    votes: 142,
-    tag: 'Economics',
+    title: 'Structured arguments',
+    desc: 'Arguments follow an argumentation scheme of your choice. Premises, conclusions, evidence — all clearly defined.',
   },
   {
-    id: 2,
-    title: 'Open-source AI models pose greater safety risks than closed ones',
-    author: '[ author_name ]',
-    stance: 'Against',
-    replies: 18,
-    votes: 98,
-    tag: 'Technology',
+    title: 'Limited Bias',
+    desc: 'Critical questions force you to counter the argument not just disagree with it.',
   },
   {
-    id: 3,
-    title: 'Ranked-choice voting improves democratic outcomes',
-    author: '[ author_name ]',
-    stance: 'For',
-    replies: 31,
-    votes: 207,
-    tag: 'Politics',
+    title: 'Quality over Quantity',
+    desc: 'Focus on building strong, well-reasoned arguments rather than numerous weak ones.',
   },
-];
-
-const STATS = [
-  { value: '[ total_arguments ]', label: 'Arguments made' },
-  { value: '[ total_users ]', label: 'Active debaters' },
-  { value: '[ total_votes ]', label: 'Votes cast' },
 ];
 
 const LandingPage = () => {
+  const { user, loading, error, login, signup } = useAuth();
+  const [mode, setMode] = useState('login');
+  const [form, setForm] = useState({ username: '', email: '', password: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState(null);
+
+  if (loading) return <div className="page-loading">Loading…</div>;
+  if (user) return <Navigate to="/dashboard" replace />;
+
+  const handleChange = (e) => {
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    setFormError(null);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      if (mode === 'login') {
+        await login(form.username, form.password);
+      } else {
+        await signup(form.username, form.email, form.password);
+      }
+    } catch (err) {
+      setFormError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const switchMode = (next) => {
+    setMode(next);
+    setFormError(null);
+    setForm({ username: '', email: '', password: '' });
+  };
+
   return (
     <div className="landing">
 
-      {/* Hero */}
-      <section className="hero">
-        <div className="hero-inner">
-          <p className="hero-eyebrow">The structured debate platform</p>
-          <h1 className="hero-headline">
-            Where arguments<br />
-            <em>stand or fall</em> on merit.
+      {/* Left panel — branding + feature cards */}
+      <div className="landing-left">
+        <div className="landing-left-inner">
+          <div className="landing-logo">
+            <span className="logo-mark">A</span>
+            <span className="logo-text">argupedia</span>
+          </div>
+
+          <h1 className="landing-headline">
+            Argumentation done right.
           </h1>
-          <p className="hero-sub">
-            Argupedia helps you build, challenge, and refine arguments with structured reasoning.
-            No hot takes — just claims, evidence, and counter-arguments.
+          <p className="landing-sub">
+            A structured debate platform. Build a case, face the counter, let the best reasoning win.
           </p>
-          <div className="hero-cta">
-            <Link to="/dashboard" className="cta-primary">Explore arguments</Link>
-            <Link to="/new-argument" className="cta-secondary">Make your case →</Link>
-          </div>
-        </div>
-        <div className="hero-decoration" aria-hidden="true">
-          <div className="deco-card deco-card-1">
-            <span className="deco-stance for">For</span>
-            <p>Free markets allocate resources more efficiently than central planning.</p>
-          </div>
-          <div className="deco-card deco-card-2">
-            <span className="deco-stance against">Against</span>
-            <p>Markets fail to account for externalities and public goods.</p>
-          </div>
-        </div>
-      </section>
 
-      {/* Stats */}
-      <section className="stats-bar">
-        <div className="stats-inner">
-          {STATS.map((s) => (
-            <div key={s.label} className="stat-item">
-              <span className="stat-value">{s.value}</span>
-              <span className="stat-label">{s.label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Featured arguments */}
-      <section className="featured">
-        <div className="section-inner">
-          <div className="section-header">
-            <h2 className="section-title">Trending arguments</h2>
-            <Link to="/arguments" className="section-link">View all →</Link>
-          </div>
-          <div className="argument-list">
-            {FEATURED_ARGUMENTS.map((arg) => (
-              <Link to={`/argument/${arg.id}`} key={arg.id} className="argument-card">
-                <div className="argument-card-top">
-                  <span className="arg-tag">{arg.tag}</span>
-                  <span className={`arg-stance ${arg.stance.toLowerCase()}`}>{arg.stance}</span>
-                </div>
-                <h3 className="arg-title">{arg.title}</h3>
-                <div className="arg-meta">
-                  <span>by {arg.author}</span>
-                  <span className="meta-sep">·</span>
-                  <span>{arg.replies} replies</span>
-                  <span className="meta-sep">·</span>
-                  <span>{arg.votes} votes</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="how-it-works">
-        <div className="section-inner">
-          <h2 className="section-title">How Argupedia works</h2>
-          <div className="steps-grid">
-            {[
-              { num: '01', title: 'State your claim', desc: 'Start with a clear, falsifiable thesis. No vague opinions.' },
-              { num: '02', title: 'Add your evidence', desc: 'Support your claim with sources, data, or logical premises.' },
-              { num: '03', title: 'Face the counter', desc: 'Others can challenge your argument directly and point-by-point.' },
-              { num: '04', title: 'Community votes', desc: 'The community rates argument quality — not just popularity.' },
-            ].map((step) => (
-              <div key={step.num} className="step-card">
-                <span className="step-num">{step.num}</span>
-                <h3 className="step-title">{step.title}</h3>
-                <p className="step-desc">{step.desc}</p>
+          <div className="feature-cards">
+            {FEATURES.map((f) => (
+              <div key={f.title} className="feature-card">
+                <p className="feature-title">{f.title}</p>
+                <p className="feature-desc">{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Footer CTA */}
-      <section className="footer-cta">
-        <div className="section-inner footer-cta-inner">
-          <h2>Ready to make your case?</h2>
-          <Link to="/new-argument" className="cta-primary">Start an argument</Link>
+      {/* Right panel — auth form */}
+      <div className="landing-right">
+        <div className="auth-box">
+
+          <div className="auth-tabs">
+            <button
+              className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
+              onClick={() => switchMode('login')}
+            >
+              Log in
+            </button>
+            <button
+              className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
+              onClick={() => switchMode('signup')}
+            >
+              Sign up
+            </button>
+          </div>
+
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <div className="field">
+              <label className="field-label" htmlFor="username">Username</label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                className="field-input"
+                value={form.username}
+                onChange={handleChange}
+                autoComplete="username"
+                required
+              />
+            </div>
+
+            {mode === 'signup' && (
+              <div className="field">
+                <label className="field-label" htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  className="field-input"
+                  value={form.email}
+                  onChange={handleChange}
+                  autoComplete="email"
+                  required
+                />
+              </div>
+            )}
+
+            <div className="field">
+              <label className="field-label" htmlFor="password">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                className="field-input"
+                value={form.password}
+                onChange={handleChange}
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                required
+              />
+            </div>
+
+            {(formError || error) && (
+              <p className="auth-error">{formError || error}</p>
+            )}
+
+            <button className="auth-submit" type="submit" disabled={submitting}>
+              {submitting
+                ? 'Please wait…'
+                : mode === 'login' ? 'Log in' : 'Create account'}
+            </button>
+          </form>
+
+          <p className="auth-switch">
+            {mode === 'login' ? (
+              <>No account?{' '}
+                <button className="link-btn" onClick={() => switchMode('signup')}>Sign up</button>
+              </>
+            ) : (
+              <>Already have one?{' '}
+                <button className="link-btn" onClick={() => switchMode('login')}>Log in</button>
+              </>
+            )}
+          </p>
+
         </div>
-      </section>
+      </div>
 
     </div>
   );

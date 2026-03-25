@@ -1,156 +1,82 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
-const RECENT_ARGUMENTS = [
-  { id: 1, title: 'Universal Basic Income would reduce economic inequality', tag: 'Economics', stance: 'For', votes: 142, replies: 24, status: 'active' },
-  { id: 2, title: 'Open-source AI models pose greater safety risks than closed ones', tag: 'Technology', stance: 'Against', votes: 98, replies: 18, status: 'active' },
-  { id: 3, title: 'Ranked-choice voting improves democratic outcomes', tag: 'Politics', stance: 'For', votes: 207, replies: 31, status: 'closed' },
-  { id: 4, title: 'Space exploration funding should be privatised', tag: 'Science', stance: 'For', votes: 64, replies: 12, status: 'active' },
-  { id: 5, title: 'Social media does more harm than good for teenagers', tag: 'Society', stance: 'Against', votes: 183, replies: 45, status: 'active' },
+// Stat cards — map user fields to display labels.
+// Update the `key` values to match whatever your /api/auth/me/ endpoint returns.
+const STAT_FIELDS = [
+  { label: 'Arguments made', key: 'argument_count' },
+  { label: 'Votes received',  key: 'vote_count' },
+  { label: 'Reputation',      key: 'reputation' },
+  { label: 'Win rate',        key: 'win_rate', format: (v) => v != null ? `${v}%` : null },
 ];
 
-const USER_STATS = [
-  { label: 'Arguments made', value: '[ user_arg_count ]' },
-  { label: 'Total votes received', value: '[ user_vote_count ]' },
-  { label: 'Win rate', value: '[ user_win_rate ]' },
-  { label: 'Reputation', value: '[ user_reputation ]' },
-];
-
-const TAGS = ['All', 'Economics', 'Technology', 'Politics', 'Science', 'Society', 'Philosophy'];
+const fmt = (value, format) => {
+  if (value == null || value === '') return '—';
+  return format ? format(value) : value;
+};
 
 const Dashboard = () => {
-  const [activeTag, setActiveTag] = useState('All');
-  const [sortBy, setSortBy] = useState('recent');
+  const { user, loading, logout } = useAuth();
 
-  const filtered = RECENT_ARGUMENTS.filter(
-    (a) => activeTag === 'All' || a.tag === activeTag
-  );
+  if (loading) return <div className="page-loading">Loading…</div>;
+  if (!user)   return <Navigate to="/" replace />;
+
+  const initial = user.username?.[0]?.toUpperCase() ?? '?';
 
   return (
     <div className="dashboard">
 
-      {/* Welcome strip */}
-      <div className="dashboard-welcome">
-        <div className="dashboard-inner">
-          <div className="welcome-text">
-            <h1 className="welcome-title">Welcome back, <em>[ username ]</em></h1>
-            <p className="welcome-sub">Here's what's happening on Argupedia today.</p>
+      {/* Top bar */}
+      <header className="dash-header">
+        <div className="dash-header-inner">
+          <div className="dash-logo">
+            <span className="logo-mark-sm">A</span>
+            <span className="logo-text-sm">argupedia</span>
           </div>
-          <Link to="/new-argument" className="cta-primary">+ New argument</Link>
+          <button className="logout-btn" onClick={logout}>Log out</button>
         </div>
-      </div>
+      </header>
 
-      <div className="dashboard-body">
-        <div className="dashboard-inner">
-          <div className="dashboard-grid">
+      <main className="dash-main">
+        <div className="dash-inner">
 
-            {/* Main feed */}
-            <main className="feed">
-              <div className="feed-toolbar">
-                <div className="tag-filters">
-                  {TAGS.map((tag) => (
-                    <button
-                      key={tag}
-                      className={`tag-btn ${activeTag === tag ? 'active' : ''}`}
-                      onClick={() => setActiveTag(tag)}
-                    >
-                      {tag}
-                    </button>
-                  ))}
+          {/* Profile card */}
+          <section className="profile-card">
+            <div className="profile-avatar">{initial}</div>
+            <div className="profile-info">
+              <h1 className="profile-username">{user.username}</h1>
+              {user.email && <p className="profile-email">{user.email}</p>}
+              {user.date_joined && (
+                <p className="profile-joined">
+                  Joined {new Date(user.date_joined).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                </p>
+              )}
+            </div>
+          </section>
+
+          {/* Stats grid */}
+          <section className="stats-section">
+            <h2 className="section-heading">Your stats</h2>
+            <div className="stats-grid">
+              {STAT_FIELDS.map(({ label, key, format }) => (
+                <div key={key} className="stat-card">
+                  <span className="stat-value">{fmt(user[key], format)}</span>
+                  <span className="stat-label">{label}</span>
                 </div>
-                <select
-                  className="sort-select"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                >
-                  <option value="recent">Most recent</option>
-                  <option value="votes">Most voted</option>
-                  <option value="replies">Most discussed</option>
-                </select>
-              </div>
+              ))}
+            </div>
+          </section>
 
-              <div className="argument-feed">
-                {filtered.map((arg) => (
-                  <Link key={arg.id} to={`/argument/${arg.id}`} className="feed-card">
-                    <div className="feed-card-meta">
-                      <span className="arg-tag">{arg.tag}</span>
-                      <span className={`arg-stance ${arg.stance.toLowerCase()}`}>{arg.stance}</span>
-                      {arg.status === 'closed' && <span className="status-closed">Closed</span>}
-                    </div>
-                    <h3 className="feed-card-title">{arg.title}</h3>
-                    <div className="feed-card-stats">
-                      <span>↑ {arg.votes}</span>
-                      <span>💬 {arg.replies} replies</span>
-                    </div>
-                  </Link>
-                ))}
+          {/* Placeholder for future sections */}
+          <section className="placeholder-section">
+            <p className="placeholder-text">Your arguments will appear here.</p>
+          </section>
 
-                {filtered.length === 0 && (
-                  <div className="empty-state">
-                    <p>No arguments in this category yet.</p>
-                    <Link to="/new-argument" className="cta-primary" style={{ marginTop: 12, display: 'inline-flex' }}>
-                      Start one →
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </main>
-
-            {/* Sidebar */}
-            <aside className="sidebar">
-
-              {/* User stats */}
-              <div className="sidebar-card">
-                <div className="sidebar-user-header">
-                  <div className="sidebar-avatar">U</div>
-                  <div>
-                    <p className="sidebar-username">[ username ]</p>
-                    <p className="sidebar-handle">@[ user_handle ]</p>
-                  </div>
-                </div>
-                <div className="user-stats-grid">
-                  {USER_STATS.map((stat) => (
-                    <div key={stat.label} className="user-stat">
-                      <span className="user-stat-value">{stat.value}</span>
-                      <span className="user-stat-label">{stat.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Activity */}
-              <div className="sidebar-card">
-                <h3 className="sidebar-heading">Recent activity</h3>
-                <div className="activity-list">
-                  {['[ activity_item_1 ]', '[ activity_item_2 ]', '[ activity_item_3 ]'].map((item, i) => (
-                    <div key={i} className="activity-item">
-                      <span className="activity-dot" />
-                      <span className="activity-text">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Trending tags */}
-              <div className="sidebar-card">
-                <h3 className="sidebar-heading">Trending topics</h3>
-                <div className="trending-tags">
-                  {['Economics', 'AI Policy', 'Climate', 'Healthcare', 'Education'].map((t) => (
-                    <button
-                      key={t}
-                      className="trending-tag"
-                      onClick={() => setActiveTag(t === 'AI Policy' ? 'Technology' : t)}
-                    >
-                      #{t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </aside>
-          </div>
         </div>
-      </div>
+      </main>
+
     </div>
   );
 };

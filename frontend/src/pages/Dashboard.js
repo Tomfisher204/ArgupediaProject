@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
@@ -17,8 +17,36 @@ const fmt = (value, format) => {
 };
 
 const Dashboard = () => {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, getValidAccessToken } = useAuth();
   const navigate = useNavigate();
+  const [userArguments, setUserArguments] = useState([]);
+  const [argumentsLoading, setArgumentsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserArguments = async () => {
+      if (!user) return;
+      
+      try {
+        const token = await getValidAccessToken();
+        const response = await fetch('http://localhost:8000/api/user/arguments/', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setUserArguments(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user arguments:', error);
+      } finally {
+        setArgumentsLoading(false);
+      }
+    };
+
+    fetchUserArguments();
+  }, [user, getValidAccessToken]);
 
   if (loading) return <div className="page-loading">Loading…</div>;
   if (!user)   return <Navigate to="/" replace />;
@@ -72,9 +100,42 @@ const Dashboard = () => {
             </div>
           </section>
 
-          {/* Placeholder for future sections */}
-          <section className="placeholder-section">
-            <p className="placeholder-text">Your arguments will appear here.</p>
+          {/* User's arguments */}
+          <section className="arguments-section">
+            <h2 className="section-heading">Your arguments</h2>
+            {argumentsLoading ? (
+              <p className="loading-text">Loading your arguments...</p>
+            ) : userArguments.length === 0 ? (
+              <p className="placeholder-text">You haven't created any arguments yet. Visit the Themes page to get started!</p>
+            ) : (
+              <div className="arguments-list">
+                {userArguments.map((argument) => (
+                  <div key={argument.id} className="argument-card" onClick={() => navigate(`/arguments/${argument.id}`)}>
+                    <div className="argument-header">
+                      <span className="argument-theme">{argument.theme}</span>
+                      <span className="argument-scheme">{argument.scheme_name}</span>
+                    </div>
+                    <div className="argument-content">
+                      {argument.field_values.map((field, index) => (
+                        <div key={index} className="argument-field">
+                          <strong>{field.field_name}:</strong> {field.value}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="argument-footer">
+                      <span className="argument-date">
+                        {new Date(argument.date_created).toLocaleDateString()}
+                      </span>
+                      {argument.child_count > 0 && (
+                        <span className="argument-responses">
+                          {argument.child_count} response{argument.child_count !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
         </div>

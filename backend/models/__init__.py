@@ -4,3 +4,4 @@ from .scheme import ArgumentScheme, SchemeField
 from .argument import Argument, ArgumentFieldValue
 from .critical_question import CriticalQuestion
 from .argument_link import ArgumentLink
+from .theme_request import ThemeRequest

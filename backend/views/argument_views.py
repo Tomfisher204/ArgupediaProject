@@ -3,14 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-
 from backend.models import ArgumentTheme, Argument
-from backend.serializers.argument_serializer import (
-    ThemeSerializer,
-    ArgumentSummarySerializer,
-    ArgumentDetailSerializer,
-)
-
+from backend.serializers import ThemeSerializer, ArgumentSummarySerializer, ArgumentDetailSerializer
 
 class ThemeListView(APIView):
     """
@@ -36,7 +30,6 @@ class ThemeArgumentsView(APIView):
     def get(self, request, theme_id):
         theme = get_object_or_404(ArgumentTheme, id=theme_id)
 
-        # Initial arguments have no ArgumentLink pointing to them as child_argument
         initial_arguments = (
             Argument.objects
             .filter(theme=theme)
@@ -76,4 +69,24 @@ class ArgumentDetailView(APIView):
         )
 
         serializer = ArgumentDetailSerializer(argument)
+        return Response(serializer.data)
+
+
+class UserArgumentsView(APIView):
+    """
+    GET /api/user/arguments/
+    Returns all arguments created by the current user.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        arguments = (
+            Argument.objects
+            .filter(author=request.user)
+            .select_related('author', 'theme', 'scheme')
+            .prefetch_related('field_values__scheme_field')
+            .order_by('-date_created')
+        )
+
+        serializer = ArgumentSummarySerializer(arguments, many=True)
         return Response(serializer.data)

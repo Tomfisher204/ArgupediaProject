@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
 from backend.models import ArgumentTheme, Argument
 from backend.serializers import ThemeSerializer, ArgumentSummarySerializer, ArgumentDetailSerializer
@@ -15,8 +16,11 @@ class ThemeListView(APIView):
 
     def get(self, request):
         themes = ArgumentTheme.objects.all().order_by('title')
-        serializer = ThemeSerializer(themes, many=True)
-        return Response(serializer.data)
+        paginator = PageNumberPagination()
+        paginator.page_size = 12  # Show 12 themes per page
+        result_page = paginator.paginate_queryset(themes, request)
+        serializer = ThemeSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 class ThemeArgumentsView(APIView):
@@ -87,6 +91,8 @@ class UserArgumentsView(APIView):
             .prefetch_related('field_values__scheme_field')
             .order_by('-date_created')
         )
-
-        serializer = ArgumentSummarySerializer(arguments, many=True)
-        return Response(serializer.data)
+        paginator = PageNumberPagination()
+        paginator.page_size = 3  # Show 3 arguments per page
+        result_page = paginator.paginate_queryset(arguments, request)
+        serializer = ArgumentSummarySerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)

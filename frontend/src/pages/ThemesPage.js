@@ -9,23 +9,34 @@ const ThemesPage = () => {
   const [themes, setThemes]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
+  const [pagination, setPagination] = useState(null);
+
+  const fetchThemes = async (page = 1) => {
+    try {
+      setLoading(true);
+      const token = await getValidAccessToken();
+      const res = await fetch(`http://localhost:8000/api/themes/?page=${page}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to load themes.');
+      const data = await res.json();
+      setThemes(data.results);
+      setPagination({
+        count: data.count,
+        next: data.next,
+        previous: data.previous,
+        currentPage: page,
+        totalPages: Math.ceil(data.count / 12), // Assuming page_size=12
+      });
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchThemes = async () => {
-      try {
-        const token = await getValidAccessToken();
-        const res = await fetch('http://localhost:8000/api/themes/', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error('Failed to load themes.');
-        const data = await res.json();
-        setThemes(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchThemes();
   }, [getValidAccessToken]);
 
@@ -59,23 +70,46 @@ const ThemesPage = () => {
           )}
 
           {!loading && !error && (
-            <div className="themes-grid">
-              {themes.map((theme) => (
-                <button
-                  key={theme.id}
-                  className="theme-card"
-                  onClick={() => navigate(`/themes/${theme.id}`)}
-                >
-                  <p className="theme-title">{theme.title}</p>
-                  {theme.description && (
-                    <p className="theme-desc">{theme.description}</p>
-                  )}
-                  <p className="theme-count">
-                    {theme.argument_count} argument{theme.argument_count !== 1 ? 's' : ''}
-                  </p>
-                </button>
-              ))}
-            </div>
+            <>
+              <div className="themes-grid">
+                {themes.map((theme) => (
+                  <button
+                    key={theme.id}
+                    className="theme-card"
+                    onClick={() => navigate(`/themes/${theme.id}`)}
+                  >
+                    <p className="theme-title">{theme.title}</p>
+                    {theme.description && (
+                      <p className="theme-desc">{theme.description}</p>
+                    )}
+                    <p className="theme-count">
+                      {theme.argument_count} argument{theme.argument_count !== 1 ? 's' : ''}
+                    </p>
+                  </button>
+                ))}
+              </div>
+              {pagination && pagination.totalPages > 1 && (
+                <div className="pagination">
+                  <button
+                    className="pagination-btn"
+                    onClick={() => fetchThemes(pagination.currentPage - 1)}
+                    disabled={!pagination.previous}
+                  >
+                    Previous
+                  </button>
+                  <span className="pagination-info">
+                    Page {pagination.currentPage} of {pagination.totalPages}
+                  </span>
+                  <button
+                    className="pagination-btn"
+                    onClick={() => fetchThemes(pagination.currentPage + 1)}
+                    disabled={!pagination.next}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>

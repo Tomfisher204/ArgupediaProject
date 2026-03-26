@@ -21,30 +21,39 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [userArguments, setUserArguments] = useState([]);
   const [argumentsLoading, setArgumentsLoading] = useState(true);
+  const [pagination, setPagination] = useState(null);
+
+  const fetchUserArguments = async (page = 1) => {
+    if (!user) return;
+    
+    try {
+      setArgumentsLoading(true);
+      const token = await getValidAccessToken();
+      const response = await fetch(`http://localhost:8000/api/user/arguments/?page=${page}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserArguments(data.results);
+        setPagination({
+          count: data.count,
+          next: data.next,
+          previous: data.previous,
+          currentPage: page,
+          totalPages: Math.ceil(data.count / 3), // Assuming page_size=3
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch user arguments:', error);
+    } finally {
+      setArgumentsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUserArguments = async () => {
-      if (!user) return;
-      
-      try {
-        const token = await getValidAccessToken();
-        const response = await fetch('http://localhost:8000/api/user/arguments/', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setUserArguments(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch user arguments:', error);
-      } finally {
-        setArgumentsLoading(false);
-      }
-    };
-
     fetchUserArguments();
   }, [user, getValidAccessToken]);
 
@@ -108,33 +117,56 @@ const Dashboard = () => {
             ) : userArguments.length === 0 ? (
               <p className="placeholder-text">You haven't created any arguments yet. Visit the Themes page to get started!</p>
             ) : (
-              <div className="arguments-list">
-                {userArguments.map((argument) => (
-                  <div key={argument.id} className="argument-card" onClick={() => navigate(`/arguments/${argument.id}`)}>
-                    <div className="argument-header">
-                      <span className="argument-theme">{argument.theme}</span>
-                      <span className="argument-scheme">{argument.scheme_name}</span>
-                    </div>
-                    <div className="argument-content">
-                      {argument.field_values.map((field, index) => (
-                        <div key={index} className="argument-field">
-                          <strong>{field.field_name}:</strong> {field.value}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="argument-footer">
-                      <span className="argument-date">
-                        {new Date(argument.date_created).toLocaleDateString()}
-                      </span>
-                      {argument.child_count > 0 && (
-                        <span className="argument-responses">
-                          {argument.child_count} response{argument.child_count !== 1 ? 's' : ''}
+              <>
+                <div className="arguments-list">
+                  {userArguments.map((argument) => (
+                    <div key={argument.id} className="argument-card" onClick={() => navigate(`/arguments/${argument.id}`)}>
+                      <div className="argument-header">
+                        <span className="argument-theme">{argument.theme}</span>
+                        <span className="argument-scheme">{argument.scheme_name}</span>
+                      </div>
+                      <div className="argument-content">
+                        {argument.field_values.map((field, index) => (
+                          <div key={index} className="argument-field">
+                            <strong>{field.field_name}:</strong> {field.value}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="argument-footer">
+                        <span className="argument-date">
+                          {new Date(argument.date_created).toLocaleDateString()}
                         </span>
-                      )}
+                        {argument.child_count > 0 && (
+                          <span className="argument-responses">
+                            {argument.child_count} response{argument.child_count !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                  ))}
+                </div>
+                {pagination && pagination.totalPages > 1 && (
+                  <div className="pagination">
+                    <button
+                      className="pagination-btn"
+                      onClick={() => fetchUserArguments(pagination.currentPage - 1)}
+                      disabled={!pagination.previous}
+                    >
+                      Previous
+                    </button>
+                    <span className="pagination-info">
+                      Page {pagination.currentPage} of {pagination.totalPages}
+                    </span>
+                    <button
+                      className="pagination-btn"
+                      onClick={() => fetchUserArguments(pagination.currentPage + 1)}
+                      disabled={!pagination.next}
+                    >
+                      Next
+                    </button>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </section>
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from backend.models import Argument, ArgumentFieldValue, ArgumentLink
+from backend.models import Argument, ArgumentFieldValue, ArgumentLink, SchemeField
 
 class FieldValueSerializer(serializers.ModelSerializer):
     field_name = serializers.CharField(source='scheme_field.name', read_only=True)

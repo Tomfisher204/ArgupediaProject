@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AddArgumentModal from '../components/AddArgumentModal';
 import './ThemeArgumentsPage.css';
 
 const ArgumentCard = ({ argument, onClick }) => {
@@ -28,23 +29,27 @@ const ThemeArgumentsPage = () => {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const fetchArguments = async () => {
+    try {
+      setLoading(true);
+      const token = await getValidAccessToken();
+      const res = await fetch(`http://localhost:8000/api/themes/${themeId}/arguments/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to load arguments.');
+      setData(await res.json());
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetch_ = async () => {
-      try {
-        const token = await getValidAccessToken();
-        const res = await fetch(`http://localhost:8000/api/themes/${themeId}/arguments/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error('Failed to load arguments.');
-        setData(await res.json());
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch_();
+    fetchArguments();
   }, [themeId, getValidAccessToken]);
 
   return (
@@ -81,6 +86,7 @@ const ThemeArgumentsPage = () => {
                 {data.theme.description && (
                   <p className="page-sub">{data.theme.description}</p>
                 )}
+                <button className="btn-new" onClick={() => setShowModal(true)}>Add Initial Argument</button>
               </div>
 
               {data.arguments.length === 0 ? (
@@ -100,6 +106,18 @@ const ThemeArgumentsPage = () => {
           )}
         </div>
       </main>
+
+      {showModal && (
+        <AddArgumentModal
+          themeId={parseInt(themeId)}
+          parentArgumentId={null}
+          onClose={() => setShowModal(false)}
+          onSuccess={(newArgId) => {
+            setShowModal(false);
+            fetchArguments();
+          }}
+        />
+      )}
     </div>
   );
 };

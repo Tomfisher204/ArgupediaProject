@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AddArgumentModal from '../components/AddArgumentModal';
 import './ArgumentPage.css';
 
 const ChildCard = ({ link, onClick }) => {
@@ -26,6 +27,7 @@ const ArgumentPage = () => {
   const [argument, setArgument] = useState(null);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
+  const [showModal, setShowModal] = useState(false);
   
   // Parse the path: "123/456/789" -> [123, 456, 789]
   const argumentIds = path ? path.split('/').filter(id => id) : [];
@@ -59,24 +61,27 @@ const ArgumentPage = () => {
   
   const breadcrumbs = buildBreadcrumbs(argument);
 
-  useEffect(() => {
+  const fetchArgument = async () => {
     if (!currentArgumentId) return;
     
-    const fetch_ = async () => {
-      try {
-        const token = await getValidAccessToken();
-        const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error('Failed to load argument.');
-        setArgument(await res.json());
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch_();
+    try {
+      setLoading(true);
+      const token = await getValidAccessToken();
+      const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to load argument.');
+      setArgument(await res.json());
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchArgument();
   }, [currentArgumentId, getValidAccessToken]);
 
   return (
@@ -134,6 +139,11 @@ const ArgumentPage = () => {
                 </div>
               </div>
 
+              {/* Add response button */}
+              <div className="add-response-section">
+                <button className="btn-new" onClick={() => setShowModal(true)}>Add Response</button>
+              </div>
+
               {/* Children: attackers / supporters split */}
               {(argument.attackers.length > 0 || argument.supporters.length > 0) ? (
                 <div className="children-layout">
@@ -189,6 +199,18 @@ const ArgumentPage = () => {
           )}
         </div>
       </main>
+
+      {showModal && argument && (
+        <AddArgumentModal
+          themeId={argument.theme_id}
+          parentArgumentId={parseInt(currentArgumentId)}
+          onClose={() => setShowModal(false)}
+          onSuccess={(newArgId) => {
+            setShowModal(false);
+            fetchArgument();
+          }}
+        />
+      )}
     </div>
   );
 };

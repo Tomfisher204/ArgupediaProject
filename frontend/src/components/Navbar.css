@@ -3,7 +3,6 @@
 :root {
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'DM Sans', sans-serif;
-
   --color-ink: #1a1a18;
   --color-ink-muted: #6b6b65;
   --color-ink-faint: #b0b0a8;
@@ -13,7 +12,6 @@
   --color-accent: #2d5a3d;
   --color-accent-light: #eef4f0;
   --color-accent-text: #1d3d29;
-
   --nav-height: 60px;
   --radius-sm: 6px;
   --radius-md: 10px;

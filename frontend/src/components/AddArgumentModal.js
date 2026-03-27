@@ -12,14 +12,7 @@ const buildPreview = (template, fieldValues) => {
   });
 };
 
-const AddArgumentModal = ({
-  themeId,
-  parentArgumentId = null,
-  parentSchemeId = null,
-  attackingDefault = true,
-  onClose,
-  onSuccess,
-}) => {
+const AddArgumentModal = ({themeId, parentArgumentId = null, parentSchemeId = null, attackingDefault = true, onClose, onSuccess,}) => {
   const { getValidAccessToken } = useAuth();
   const [schemes, setSchemes] = useState([]);
   const [parentCQs, setParentCQs] = useState([]);
@@ -115,7 +108,6 @@ const AddArgumentModal = ({
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-
         <div className="modal-header">
           <h2 className="modal-title">
             {isResponse ? (attacking ? 'Add attack' : 'Add support') : 'Add initial argument'}
@@ -126,16 +118,11 @@ const AddArgumentModal = ({
           {isResponse && (
             <div className="form-field">
               <label className="form-label">Critical question</label>
-              {loadingSchemes ? (
-                <p className="hint">Loading…</p>
+              {loadingSchemes ? (<p className="hint">Loading…</p>
               ) : parentCQs.length === 0 ? (
                 <p className="hint">No critical questions found for the parent argument's scheme.</p>
               ) : (
-                <select
-                  className="form-select"
-                  value={selectedCQ}
-                  onChange={(e) => setSelectedCQ(e.target.value)}
-                >
+                <select className="form-select" value={selectedCQ} onChange={(e) => setSelectedCQ(e.target.value)}>
                   <option value="">Select a critical question…</option>
                   {parentCQs.map((cq) => (
                     <option key={cq.id} value={cq.id}>{cq.question}</option>
@@ -148,18 +135,10 @@ const AddArgumentModal = ({
             <div className="form-field">
               <label className="form-label">This argument is…</label>
               <div className="toggle-row">
-                <button
-                  className={`toggle-btn attacking ${attacking ? 'active' : ''}`}
-                  onClick={() => setAttacking(true)}
-                  type="button"
-                >
+                <button className={`toggle-btn attacking ${attacking ? 'active' : ''}`} onClick={() => setAttacking(true)} type="button">
                   Attacking
                 </button>
-                <button
-                  className={`toggle-btn supporting ${!attacking ? 'active' : ''}`}
-                  onClick={() => setAttacking(false)}
-                  type="button"
-                >
+                <button className={`toggle-btn supporting ${!attacking ? 'active' : ''}`} onClick={() => setAttacking(false)} type="button">
                   Supporting
                 </button>
               </div>

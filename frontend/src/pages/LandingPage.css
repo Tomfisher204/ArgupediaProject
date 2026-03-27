@@ -7,14 +7,12 @@
   color: var(--color-ink-muted);
 }
 
-/* Two-column full-height layout */
 .landing {
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-height: 100vh;
 }
 
-/* ── Left panel ── */
 .landing-left {
   background: var(--color-accent);
   display: flex;
@@ -28,7 +26,6 @@
   width: 100%;
 }
 
-/* Logo */
 .landing-logo {
   display: flex;
   align-items: center;
@@ -75,7 +72,6 @@
   margin-bottom: 36px;
 }
 
-/* Feature cards */
 .feature-cards {
   display: flex;
   flex-direction: column;
@@ -102,7 +98,6 @@
   color: rgba(255,255,255,0.65);
 }
 
-/* ── Right panel ── */
 .landing-right {
   background: var(--color-surface);
   display: flex;
@@ -116,7 +111,6 @@
   width: 100%;
 }
 
-/* Tabs */
 .auth-tabs {
   display: flex;
   gap: 0;
@@ -148,7 +142,6 @@
   font-weight: 500;
 }
 
-/* Form */
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -239,7 +232,6 @@
   opacity: 0.75;
 }
 
-/* ── Responsive ── */
 @media (max-width: 720px) {
   .landing {
     grid-template-columns: 1fr;

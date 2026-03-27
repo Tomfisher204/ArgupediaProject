@@ -3,7 +3,6 @@
   background: var(--color-surface);
 }
 
-/* ── Shared header styles ── */
 .page-header {
   background: var(--color-surface-raised);
   border-bottom: 1px solid var(--color-border);
@@ -103,7 +102,6 @@
   color: var(--color-ink);
 }
 
-/* ── Main ── */
 .dash-main {
   padding: 36px 0 80px;
 }
@@ -117,7 +115,6 @@
   gap: 28px;
 }
 
-/* ── Profile card ── */
 .profile-card {
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
@@ -163,7 +160,6 @@
   color: var(--color-ink-faint);
 }
 
-/* ── Stats ── */
 .section-heading {
   font-size: 12px;
   font-weight: 500;

@@ -21,7 +21,6 @@
   overflow: hidden;
 }
 
-/* Header */
 .modal-header {
   display: flex;
   align-items: center;
@@ -55,7 +54,6 @@
   color: var(--color-ink);
 }
 
-/* Body */
 .modal-body {
   padding: 20px 24px;
   overflow-y: auto;
@@ -65,7 +63,6 @@
   gap: 18px;
 }
 
-/* Form fields */
 .form-field {
   display: flex;
   flex-direction: column;
@@ -125,7 +122,6 @@
   line-height: 1.5;
 }
 
-/* Attacking / supporting toggle */
 .toggle-row {
   display: flex;
   gap: 8px;
@@ -157,7 +153,6 @@
   color: var(--color-accent-text);
 }
 
-/* Fields + preview split */
 .fields-and-preview {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -180,7 +175,6 @@
   gap: 12px;
 }
 
-/* Preview card */
 .preview-col {
   position: sticky;
   top: 0;
@@ -250,7 +244,6 @@
   padding: 9px 12px;
 }
 
-/* Footer */
 .modal-footer {
   padding: 16px 24px;
   border-top: 1px solid var(--color-border);
@@ -305,7 +298,6 @@
 
 .btn-submit.attacking  { background: #c94f4f; }
 .btn-submit.supporting { background: var(--color-accent); }
-
 .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 640px) {

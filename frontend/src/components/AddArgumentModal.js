@@ -4,9 +4,6 @@ import './AddArgumentModal.css';
 
 const API = 'http://localhost:8000';
 
-// Interpolates a scheme template string with current field values
-// e.g. "In scenario {S}, action {A} is justified." + {S: 'war', A: 'retaliate'}
-// => "In scenario war, action retaliate is justified."
 const buildPreview = (template, fieldValues) => {
   if (!template) return null;
   return template.replace(/\{(\w+)\}/g, (_, key) => {
@@ -17,25 +14,24 @@ const buildPreview = (template, fieldValues) => {
 
 const AddArgumentModal = ({
   themeId,
-  parentArgumentId = null,   // null = initial argument
-  attackingDefault = true,   // only used when parentArgumentId is set
+  parentArgumentId = null,
+  parentSchemeId = null,
+  attackingDefault = true,
   onClose,
   onSuccess,
 }) => {
   const { getValidAccessToken } = useAuth();
-
   const [schemes, setSchemes] = useState([]);
+  const [parentCQs, setParentCQs] = useState([]);
   const [selectedScheme, setSelected] = useState(null);
   const [fieldValues, setFieldValues] = useState({});
   const [selectedCQ, setSelectedCQ] = useState('');
-  const [attacking, setAttacking] = useState(attackingDefault);
+  const [attacking, setAttacking]  = useState(attackingDefault);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [loadingSchemes, setLoading] = useState(true);
-
   const isResponse = parentArgumentId !== null;
 
-  // Load schemes
   useEffect(() => {
     const load = async () => {
       try {
@@ -46,20 +42,26 @@ const AddArgumentModal = ({
         if (!res.ok) throw new Error('Failed to load schemes.');
         const data = await res.json();
         setSchemes(data);
-      } catch (err) {
+        if (isResponse && parentSchemeId) {
+          const ps = data.find((s) => s.id === Number(parentSchemeId));
+          setParentCQs(ps?.critical_questions ?? []);
+        } 
+      } 
+      catch (err) {
+        console.error('[AddArgumentModal] error loading schemes:', err);
         setError(err.message);
-      } finally {
+      } 
+      finally {
         setLoading(false);
       }
     };
     load();
-  }, [getValidAccessToken]);
+  }, [getValidAccessToken, isResponse, parentSchemeId]);
 
   const handleSchemeChange = useCallback((schemeId) => {
     const scheme = schemes.find((s) => s.id === parseInt(schemeId));
     setSelected(scheme || null);
     setFieldValues({});
-    setSelectedCQ('');
     setError(null);
   }, [schemes]);
 
@@ -68,18 +70,14 @@ const AddArgumentModal = ({
   };
 
   const handleSubmit = async () => {
-    if (!selectedScheme) { setError('Please select a scheme.'); return; }
     if (isResponse && !selectedCQ) { setError('Please select a critical question.'); return; }
+    if (!selectedScheme) { setError('Please select a scheme.'); return; }
 
-    // Build field_values array using field IDs
-    const fvArray = selectedScheme.fields.map((f) => ({
-      scheme_field_id: f.id,
-      value: fieldValues[f.name] || '',
-    }));
+    const fvArray = selectedScheme.fields.map((f) => ({scheme_field_id: f.id, value: fieldValues[f.name] || ''}));
 
     const payload = {
-      scheme_id:   selectedScheme.id,
-      theme_id:    themeId,
+      scheme_id: selectedScheme.id,
+      theme_id: themeId,
       field_values: fvArray,
       ...(isResponse && {
         parent_argument_id:   parentArgumentId,
@@ -93,9 +91,9 @@ const AddArgumentModal = ({
     try {
       const token = await getValidAccessToken();
       const res = await fetch(`${API}/api/arguments/create/`, {
-        method:  'POST',
+        method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify(payload),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -124,49 +122,28 @@ const AddArgumentModal = ({
           </h2>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
-
         <div className="modal-body">
-
-          {/* Scheme selector */}
-          <div className="form-field">
-            <label className="form-label">Argument scheme</label>
-            {loadingSchemes ? (
-              <p className="hint">Loading schemes…</p>
-            ) : (
-              <select
-                className="form-select"
-                value={selectedScheme?.id ?? ''}
-                onChange={(e) => handleSchemeChange(e.target.value)}
-              >
-                <option value="">Select a scheme…</option>
-                {schemes.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            )}
-            {selectedScheme?.description && (
-              <p className="hint">{selectedScheme.description}</p>
-            )}
-          </div>
-
-          {/* Critical question (responses only) */}
-          {isResponse && selectedScheme && (
+          {isResponse && (
             <div className="form-field">
               <label className="form-label">Critical question</label>
-              <select
-                className="form-select"
-                value={selectedCQ}
-                onChange={(e) => setSelectedCQ(e.target.value)}
-              >
-                <option value="">Select a critical question…</option>
-                {selectedScheme.critical_questions.map((cq) => (
-                  <option key={cq.id} value={cq.id}>{cq.question}</option>
-                ))}
-              </select>
+              {loadingSchemes ? (
+                <p className="hint">Loading…</p>
+              ) : parentCQs.length === 0 ? (
+                <p className="hint">No critical questions found for the parent argument's scheme.</p>
+              ) : (
+                <select
+                  className="form-select"
+                  value={selectedCQ}
+                  onChange={(e) => setSelectedCQ(e.target.value)}
+                >
+                  <option value="">Select a critical question…</option>
+                  {parentCQs.map((cq) => (
+                    <option key={cq.id} value={cq.id}>{cq.question}</option>
+                  ))}
+                </select>
+              )}
             </div>
           )}
-
-          {/* Attacking / supporting toggle (responses only) */}
           {isResponse && (
             <div className="form-field">
               <label className="form-label">This argument is…</label>
@@ -188,29 +165,37 @@ const AddArgumentModal = ({
               </div>
             </div>
           )}
-
-          {/* Dynamic fields + preview */}
+          <div className="form-field">
+            <label className="form-label">
+              {isResponse ? 'Scheme for your response' : 'Argument scheme'}
+            </label>
+            {loadingSchemes ? (
+              <p className="hint">Loading schemes…</p>
+            ) : (
+              <select className="form-select" value={selectedScheme?.id ?? ''} onChange={(e) => handleSchemeChange(e.target.value)}>
+                <option value="">Select a scheme…</option>
+                {schemes.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            )}
+            {selectedScheme?.description && (
+              <p className="hint">{selectedScheme.description}</p>
+            )}
+          </div>
           {selectedScheme && selectedScheme.fields.length > 0 && (
             <div className="fields-and-preview">
 
-              {/* Left: inputs */}
               <div className="fields-col">
                 <p className="col-heading">Fill in the fields</p>
                 {selectedScheme.fields.map((field) => (
                   <div key={field.id} className="form-field">
                     <label className="form-label">{field.name}</label>
-                    <textarea
-                      className="form-textarea"
-                      rows={2}
-                      value={fieldValues[field.name] || ''}
-                      onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                      placeholder={`Enter ${field.name}…`}
-                    />
+                    <textarea className="form-textarea" rows={2} value={fieldValues[field.name] || ''} onChange={(e) => handleFieldChange(field.name, e.target.value)} placeholder={`Enter ${field.name}…`}/>
                   </div>
                 ))}
               </div>
 
-              {/* Right: preview */}
               <div className="preview-col">
                 <p className="col-heading">Preview</p>
                 <div className="preview-card">
@@ -242,11 +227,7 @@ const AddArgumentModal = ({
 
         <div className="modal-footer">
           <button className="btn-ghost" onClick={onClose} disabled={submitting}>Cancel</button>
-          <button
-            className={`btn-submit ${attacking && isResponse ? 'attacking' : 'supporting'}`}
-            onClick={handleSubmit}
-            disabled={submitting || !selectedScheme}
-          >
+          <button className={`btn-submit ${attacking && isResponse ? 'attacking' : 'supporting'}`} onClick={handleSubmit} disabled={submitting || !selectedScheme || (isResponse && !selectedCQ)}>
             {submitting ? 'Submitting…' : 'Submit argument'}
           </button>
         </div>

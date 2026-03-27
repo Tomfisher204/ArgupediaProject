@@ -17,7 +17,7 @@ class ThemeListView(APIView):
     def get(self, request):
         themes = ArgumentTheme.objects.all().order_by('title')
         paginator = PageNumberPagination()
-        paginator.page_size = 12  # Show 12 themes per page
+        paginator.page_size = 16
         result_page = paginator.paginate_queryset(themes, request)
         serializer = ThemeSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
@@ -92,7 +92,7 @@ class UserArgumentsView(APIView):
             .order_by('-date_created')
         )
         paginator = PageNumberPagination()
-        paginator.page_size = 3  # Show 3 arguments per page
+        paginator.page_size = 3
         result_page = paginator.paginate_queryset(arguments, request)
         serializer = ArgumentSummarySerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)

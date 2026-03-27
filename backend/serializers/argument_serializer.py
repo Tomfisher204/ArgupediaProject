@@ -43,17 +43,14 @@ class ArgumentDetailSerializer(serializers.ModelSerializer):
     theme        = serializers.CharField(source='theme.title',      read_only=True)
     theme_id     = serializers.IntegerField(source='theme.id',      read_only=True)
     scheme_name  = serializers.CharField(source='scheme.name',      read_only=True)
+    scheme_id    = serializers.IntegerField(source='scheme.id',      read_only=True)
     field_values = FieldValueSerializer(many=True, read_only=True)
     attackers    = serializers.SerializerMethodField()
     supporters   = serializers.SerializerMethodField()
 
     class Meta:
         model = Argument
-        fields = (
-            'id', 'author', 'theme', 'theme_id', 'scheme_name',
-            'field_values', 'date_created',
-            'attackers', 'supporters',
-        )
+        fields = ('id', 'author', 'theme', 'theme_id', 'scheme_name', 'scheme_id', 'field_values', 'date_created', 'attackers', 'supporters')
 
     def get_attackers(self, obj):
         links = obj.child_links.filter(attacking=True).select_related(

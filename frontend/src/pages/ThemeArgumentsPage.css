@@ -89,3 +89,9 @@
 .btn-new:hover {
   opacity: 0.88;
 }
+
+.initial-argument-section {
+  margin-top: 32px;
+  margin-bottom: 32px;
+  text-align: center;
+}

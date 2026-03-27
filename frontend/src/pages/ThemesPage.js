@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import ThemeRequestModal from '../components/ThemeRequestModal';
 import './ThemesPage.css';
 
 const ThemesPage = () => {
   const { getValidAccessToken, logout } = useAuth();
   const navigate = useNavigate();
-  const [themes, setThemes]   = useState([]);
+  const [themes, setThemes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   const fetchThemes = async (page = 1) => {
     try {
@@ -26,7 +28,7 @@ const ThemesPage = () => {
         next: data.next,
         previous: data.previous,
         currentPage: page,
-        totalPages: Math.ceil(data.count / 12), // Assuming page_size=12
+        totalPages: Math.ceil(data.count / 16),
       });
       setError(null);
     } catch (err) {
@@ -60,6 +62,9 @@ const ThemesPage = () => {
           <div className="page-title-row">
             <h1 className="page-title">Browse themes</h1>
             <p className="page-sub">Pick a theme to see its arguments.</p>
+          </div>
+          <div className="theme-request-section">
+            <button className="btn-new" onClick={() => setShowModal(true)}>Request a Theme</button>
           </div>
 
           {loading && <p className="state-msg">Loading themes…</p>}
@@ -113,6 +118,17 @@ const ThemesPage = () => {
           )}
         </div>
       </main>
+
+      {showModal && (
+        <ThemeRequestModal
+          onClose={() => setShowModal(false)}
+          onSuccess={(newArgId) => {
+            setShowModal(false);
+            fetchThemes();
+          }}
+        />
+      )}
+
     </div>
   );
 };

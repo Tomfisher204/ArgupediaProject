@@ -287,6 +287,22 @@
   color: #fff;
 }
 
+.label-context {
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--color-ink-faint);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.hint.warning {
+  color: #b97a30;
+  background: #fdf5e8;
+  border: 1px solid #f0ddb0;
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
 .btn-submit.attacking  { background: #c94f4f; }
 .btn-submit.supporting { background: var(--color-accent); }
 

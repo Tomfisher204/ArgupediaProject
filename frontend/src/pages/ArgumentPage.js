@@ -21,49 +21,43 @@ const ChildCard = ({ link, onClick }) => {
 };
 
 const ArgumentPage = () => {
-  const { '*': path } = useParams(); // Get the full path parameter
+  const { '*': path } = useParams();
   const { getValidAccessToken, logout } = useAuth();
   const navigate = useNavigate();
   const [argument, setArgument] = useState(null);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
   const [showModal, setShowModal] = useState(false);
-  
-  // Parse the path: "123/456/789" -> [123, 456, 789]
+
   const argumentIds = path ? path.split('/').filter(id => id) : [];
   const currentArgumentId = argumentIds[argumentIds.length - 1];
-  
-  // Build breadcrumb data
+
   const buildBreadcrumbs = (arg) => {
     if (!arg) return [];
-    
     const breadcrumbs = [
       { label: 'Themes', path: '/themes' },
       { label: arg.theme, path: `/themes/${arg.theme_id}` },
     ];
-    
-    // Add argument path
     argumentIds.forEach((id, index) => {
       const argPath = argumentIds.slice(0, index + 1).join('/');
       const isCurrent = index === argumentIds.length - 1;
-      const title = isCurrent && arg ? 
-        (arg.field_values?.[0]?.value ?? 'Argument') : 
-        `Argument ${id}`;
+      const title = isCurrent && arg
+        ? (arg.field_values?.[0]?.value ?? 'Argument')
+        : `Argument ${id}`;
       breadcrumbs.push({
         label: title.length > 20 ? title.substring(0, 20) + '...' : title,
         path: `/arguments/${argPath}`,
         isCurrent,
       });
     });
-    
     return breadcrumbs;
   };
-  
+
+  console.log(argument?.scheme_id);
   const breadcrumbs = buildBreadcrumbs(argument);
 
   const fetchArgument = async () => {
     if (!currentArgumentId) return;
-    
     try {
       setLoading(true);
       const token = await getValidAccessToken();
@@ -96,7 +90,7 @@ const ArgumentPage = () => {
             {breadcrumbs.map((crumb, index) => (
               <React.Fragment key={crumb.path}>
                 {index > 0 && <span className="breadcrumb-sep">/</span>}
-                <button 
+                <button
                   className={`nav-link ${crumb.isCurrent ? 'active' : ''}`}
                   onClick={() => navigate(crumb.path)}
                   disabled={crumb.isCurrent}
@@ -118,13 +112,11 @@ const ArgumentPage = () => {
 
           {!loading && !error && argument && (
             <>
-              {/* Argument body */}
               <div className="argument-body">
                 <div className="argument-top">
                   <span className="arg-scheme-label">{argument.scheme_name}</span>
                   <span className="arg-theme-label">{argument.theme}</span>
                 </div>
-
                 <div className="argument-fields">
                   {argument.field_values.map((fv, i) => (
                     <div key={i} className="field-row">
@@ -133,22 +125,18 @@ const ArgumentPage = () => {
                     </div>
                   ))}
                 </div>
-
                 <div className="argument-byline">
                   <span>by {argument.author}</span>
                 </div>
               </div>
 
-              {/* Add response button */}
               <div className="add-response-section">
                 <button className="btn-new" onClick={() => setShowModal(true)}>Add Response</button>
               </div>
 
-              {/* Children: attackers / supporters split */}
               {(argument.attackers.length > 0 || argument.supporters.length > 0) ? (
                 <div className="children-layout">
 
-                  {/* Attackers — left */}
                   <div className="children-col attackers-col">
                     <div className="col-header attacking">
                       <span className="col-label">Attacking</span>
@@ -167,10 +155,8 @@ const ArgumentPage = () => {
                     )}
                   </div>
 
-                  {/* Divider */}
                   <div className="children-divider" />
 
-                  {/* Supporters — right */}
                   <div className="children-col supporters-col">
                     <div className="col-header supporting">
                       <span className="col-label">Supporting</span>
@@ -203,6 +189,7 @@ const ArgumentPage = () => {
       {showModal && argument && (
         <AddArgumentModal
           themeId={argument.theme_id}
+          parentSchemeId={argument.scheme_id}
           parentArgumentId={parseInt(currentArgumentId)}
           onClose={() => setShowModal(false)}
           onSuccess={(newArgId) => {

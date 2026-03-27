@@ -23,9 +23,9 @@ const ThemeRequestModal = ({ onClose, onSuccess }) => {
     try {
       const token = await getValidAccessToken();
       const res = await fetch(`${API}/api/theme-requests/`, {
-        method:  'POST',
+        method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify(form),
+        body: JSON.stringify(form),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

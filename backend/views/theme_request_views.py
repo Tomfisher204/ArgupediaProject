@@ -10,6 +10,7 @@ class ThemeRequestView(APIView):
 
     def post(self, request):
         serializer = ThemeRequestSerializer(data=request.data, context={'request': request})
+        print(serializer)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

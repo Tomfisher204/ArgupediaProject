@@ -86,7 +86,9 @@ const ThemeArgumentsPage = () => {
                 {data.theme.description && (
                   <p className="page-sub">{data.theme.description}</p>
                 )}
-                <button className="btn-new" onClick={() => setShowModal(true)}>Add Initial Argument</button>
+                <div className="initial-argument-section">
+                  <button className="btn-new" onClick={() => setShowModal(true)}>Add Initial Argument</button>
+                </div>
               </div>
 
               {data.arguments.length === 0 ? (

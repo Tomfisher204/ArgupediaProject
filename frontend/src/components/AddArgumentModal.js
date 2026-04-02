@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
+import React, {useEffect, useState, useCallback} from 'react';
+import {useAuth} from '../context/AuthContext';
 import './AddArgumentModal.css';
 
 const API = 'http://localhost:8000';
@@ -19,7 +19,7 @@ const AddArgumentModal = ({themeId, parentArgumentId = null, parentSchemeId = nu
   const [selectedScheme, setSelected] = useState(null);
   const [fieldValues, setFieldValues] = useState({});
   const [selectedCQ, setSelectedCQ] = useState('');
-  const [attacking, setAttacking]  = useState(attackingDefault);
+  const [attacking, setAttacking] = useState(attackingDefault);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [loadingSchemes, setLoading] = useState(true);
@@ -71,7 +71,7 @@ const AddArgumentModal = ({themeId, parentArgumentId = null, parentSchemeId = nu
       theme_id: themeId,
       field_values: fvArray,
       ...(isResponse && {
-        parent_argument_id:   parentArgumentId,
+        parent_argument_id: parentArgumentId,
         critical_question_id: parseInt(selectedCQ),
         attacking,
       }),

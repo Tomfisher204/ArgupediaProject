@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import React, {useState} from 'react';
+import {useAuth} from '../context/AuthContext';
 import './ThemeRequestModal.css';
 
 const API = 'http://localhost:8000';
 
 const ThemeRequestModal = ({ onClose, onSuccess }) => {
   const { getValidAccessToken } = useAuth();
-  const [form, setForm]         = useState({ title: '', description: '', reason: '' });
+  const [form, setForm] = useState({ title: '', description: '', reason: '' });
   const [submitting, setSubmit] = useState(false);
-  const [error, setError]       = useState(null);
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));

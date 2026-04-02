@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
-import './Dashboard.css';
+import '../css/pages/Dashboard.css';
 
 const STAT_FIELDS = [
   { label: 'Arguments made', key: 'argument_count' },

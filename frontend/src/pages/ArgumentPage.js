@@ -2,7 +2,7 @@ import React, {useEffect, useState, useCallback} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 import {AddArgumentModal, Navbar} from '../components';
-import './ArgumentPage.css';
+import '../css/pages/ArgumentPage.css';
 
 const ChildCard = ({ link, onClick }) => {
   const title = link.argument.field_values?.[0]?.value ?? '(no title)';

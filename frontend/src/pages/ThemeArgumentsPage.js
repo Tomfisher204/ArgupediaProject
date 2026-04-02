@@ -3,7 +3,7 @@ import {useNavigate, useParams} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 import AddArgumentModal from '../components/AddArgumentModal';
 import Navbar from '../components/Navbar';
-import './ThemeArgumentsPage.css';
+import '../css/pages/ThemeArgumentsPage.css';
 
 const ArgumentCard = ({ argument, onClick }) => {
   const title = argument.field_values?.[0]?.value ?? '(no title)';

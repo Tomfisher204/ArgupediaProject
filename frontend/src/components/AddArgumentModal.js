@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {useAuth} from '../context/AuthContext';
-import './AddArgumentModal.css';
+import '../css/components/AddArgumentModal.css';
 
 const API = 'http://localhost:8000';
 

@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {useAuth} from '../context/AuthContext';
-import './ThemeRequestModal.css';
+import '../css/components/ThemeRequestModal.css';
 
 const API = 'http://localhost:8000';
 

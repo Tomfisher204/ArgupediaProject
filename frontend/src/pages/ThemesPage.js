@@ -3,7 +3,7 @@ import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 import ThemeRequestModal from '../components/ThemeRequestModal';
 import Navbar from '../components/Navbar';
-import './ThemesPage.css';
+import '../css/pages/ThemesPage.css';
 
 const ThemesPage = () => {
   const {getValidAccessToken} = useAuth();

@@ -1,7 +1,7 @@
 import React from 'react';
 import {useNavigate, useLocation} from 'react-router-dom';
 import {useAuth} from '../context';
-import './Navbar.css';
+import '../css/components/Navbar.css';
 
 const Navbar = () => {
   const navigate = useNavigate();

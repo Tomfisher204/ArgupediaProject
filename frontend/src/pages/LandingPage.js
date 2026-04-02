@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import './LandingPage.css';
+import '../css/pages/LandingPage.css';
 
 const FEATURES = [
   {title: 'Structured arguments', desc: 'Arguments follow an argumentation scheme of your choice. Premises, conclusions, evidence — all clearly defined.'},

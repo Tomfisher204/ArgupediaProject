@@ -2,7 +2,7 @@ import React from 'react';
 import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
 import {AuthProvider, useAuth} from './context/AuthContext';
 import {LandingPage, Dashboard, ThemesPage, ThemeArgumentsPage, ArgumentPage} from './pages';
-import './App.css';
+import './css/App.css';
 
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();

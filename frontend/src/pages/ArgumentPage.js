@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AddArgumentModal from '../components/AddArgumentModal';
+import Navbar from '../components/Navbar';
 import './ArgumentPage.css';
 
 const ChildCard = ({ link, onClick }) => {
@@ -80,30 +81,7 @@ const ArgumentPage = () => {
 
   return (
     <div className="argument-page">
-      <header className="page-header">
-        <div className="page-header-inner">
-          <div className="header-logo" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}>
-            <span className="logo-mark-sm">A</span>
-            <span className="logo-text-sm">argupedia</span>
-          </div>
-          <nav className="header-nav">
-            {breadcrumbs.map((crumb, index) => (
-              <React.Fragment key={crumb.path}>
-                {index > 0 && <span className="breadcrumb-sep">/</span>}
-                <button
-                  className={`nav-link ${crumb.isCurrent ? 'active' : ''}`}
-                  onClick={() => navigate(crumb.path)}
-                  disabled={crumb.isCurrent}
-                >
-                  {crumb.label}
-                </button>
-              </React.Fragment>
-            ))}
-          </nav>
-          <button className="logout-btn" onClick={logout}>Log out</button>
-        </div>
-      </header>
-
+      <Navbar />
       <main className="page-main">
         <div className="page-inner">
 

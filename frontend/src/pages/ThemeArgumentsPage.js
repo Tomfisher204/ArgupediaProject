@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AddArgumentModal from '../components/AddArgumentModal';
+import Navbar from '../components/Navbar';
 import './ThemeArgumentsPage.css';
 
 const ArgumentCard = ({ argument, onClick }) => {
@@ -54,25 +55,7 @@ const ThemeArgumentsPage = () => {
 
   return (
     <div className="theme-args-page">
-      <header className="page-header">
-        <div className="page-header-inner">
-          <div className="header-logo" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}>
-            <span className="logo-mark-sm">A</span>
-            <span className="logo-text-sm">argupedia</span>
-          </div>
-          <nav className="header-nav">
-            <button className="nav-link" onClick={() => navigate('/themes')}>Themes</button>
-            {data?.theme && (
-              <span className="breadcrumb-sep">/</span>
-            )}
-            {data?.theme && (
-              <button className="nav-link active">{data.theme.title}</button>
-            )}
-          </nav>
-          <button className="logout-btn" onClick={logout}>Log out</button>
-        </div>
-      </header>
-
+      <Navbar />
       <main className="page-main">
         <div className="page-inner">
 

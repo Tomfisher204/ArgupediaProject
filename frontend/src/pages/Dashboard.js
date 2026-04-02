@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
 import './Dashboard.css';
 
-// Stat cards — map user fields to display labels.
-// Update the `key` values to match whatever your /api/auth/me/ endpoint returns.
 const STAT_FIELDS = [
   { label: 'Arguments made', key: 'argument_count' },
-  { label: 'Reputation',      key: 'reputation' },
-  { label: 'Win rate',        key: 'win_rate', format: (v) => v != null ? `${v}%` : null },
+  { label: 'Reputation', key: 'reputation' },
+  { label: 'Win rate', key: 'win_rate', format: (v) => (v != null ? `${v}%` : null) },
 ];
 
 const fmt = (value, format) => {
@@ -17,7 +16,7 @@ const fmt = (value, format) => {
 };
 
 const Dashboard = () => {
-  const { user, loading, logout, getValidAccessToken } = useAuth();
+  const { user, loading, getValidAccessToken } = useAuth();
   const navigate = useNavigate();
   const [userArguments, setUserArguments] = useState([]);
   const [argumentsLoading, setArgumentsLoading] = useState(true);
@@ -25,16 +24,14 @@ const Dashboard = () => {
 
   const fetchUserArguments = async (page = 1) => {
     if (!user) return;
-    
+
     try {
       setArgumentsLoading(true);
       const token = await getValidAccessToken();
       const response = await fetch(`http://localhost:8000/api/user/arguments/?page=${page}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setUserArguments(data.results);
@@ -43,7 +40,7 @@ const Dashboard = () => {
           next: data.next,
           previous: data.previous,
           currentPage: page,
-          totalPages: Math.ceil(data.count / 3), // Assuming page_size=3
+          totalPages: Math.ceil(data.count / 3),
         });
       }
     } catch (error) {
@@ -58,30 +55,15 @@ const Dashboard = () => {
   }, [user, getValidAccessToken]);
 
   if (loading) return <div className="page-loading">Loading…</div>;
-  if (!user)   return <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/" replace />;
 
   const initial = user.username?.[0]?.toUpperCase() ?? '?';
 
   return (
     <div className="dashboard">
-
-      {/* Top bar */}
-      <header className="page-header">
-        <div className="page-header-inner">
-          <div className="header-logo" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}>
-            <span className="logo-mark-sm">A</span>
-            <span className="logo-text-sm">argupedia</span>
-          </div>
-          <nav className="header-nav">
-            <button className="nav-link" onClick={() => navigate('/themes')}>Themes</button>
-          </nav>
-          <button className="logout-btn" onClick={logout}>Log out</button>
-        </div>
-      </header>
-
+      <Navbar />
       <main className="dash-main">
         <div className="dash-inner">
-
           {/* Profile card */}
           <section className="profile-card">
             <div className="profile-avatar">{initial}</div>
@@ -90,7 +72,11 @@ const Dashboard = () => {
               {user.email && <p className="profile-email">{user.email}</p>}
               {user.date_joined && (
                 <p className="profile-joined">
-                  Joined {new Date(user.date_joined).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                  Joined{' '}
+                  {new Date(user.date_joined).toLocaleDateString('en-GB', {
+                    month: 'long',
+                    year: 'numeric',
+                  })}
                 </p>
               )}
             </div>
@@ -115,12 +101,18 @@ const Dashboard = () => {
             {argumentsLoading ? (
               <p className="loading-text">Loading your arguments...</p>
             ) : userArguments.length === 0 ? (
-              <p className="placeholder-text">You haven't created any arguments yet. Visit the Themes page to get started!</p>
+              <p className="placeholder-text">
+                You haven't created any arguments yet. Visit the Themes page to get started!
+              </p>
             ) : (
               <>
                 <div className="arguments-list">
                   {userArguments.map((argument) => (
-                    <div key={argument.id} className="argument-card" onClick={() => navigate(`/arguments/${argument.id}`)}>
+                    <div
+                      key={argument.id}
+                      className="argument-card"
+                      onClick={() => navigate(`/arguments/${argument.id}`)}
+                    >
                       <div className="argument-header">
                         <span className="argument-theme">{argument.theme}</span>
                         <span className="argument-scheme">{argument.scheme_name}</span>
@@ -145,6 +137,7 @@ const Dashboard = () => {
                     </div>
                   ))}
                 </div>
+
                 {pagination && pagination.totalPages > 1 && (
                   <div className="pagination">
                     <button
@@ -169,10 +162,8 @@ const Dashboard = () => {
               </>
             )}
           </section>
-
         </div>
       </main>
-
     </div>
   );
 };

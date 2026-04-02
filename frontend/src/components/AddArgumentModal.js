@@ -29,9 +29,7 @@ const AddArgumentModal = ({themeId, parentArgumentId = null, parentSchemeId = nu
     const load = async () => {
       try {
         const token = await getValidAccessToken();
-        const res = await fetch(`${API}/api/schemes/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(`${API}/api/schemes/`, {headers: { Authorization: `Bearer ${token}` },});
         if (!res.ok) throw new Error('Failed to load schemes.');
         const data = await res.json();
         setSchemes(data);
@@ -94,9 +92,11 @@ const AddArgumentModal = ({themeId, parentArgumentId = null, parentSchemeId = nu
       }
       const result = await res.json();
       onSuccess(result.id);
-    } catch (err) {
+    } 
+    catch (err) {
       setError(err.message);
-    } finally {
+    } 
+    finally {
       setSubmitting(false);
     }
   };

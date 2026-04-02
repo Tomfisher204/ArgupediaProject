@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ThemeRequestModal from '../components/ThemeRequestModal';
+import Navbar from '../components/Navbar';
 import './ThemesPage.css';
 
 const ThemesPage = () => {
@@ -44,19 +45,7 @@ const ThemesPage = () => {
 
   return (
     <div className="themes-page">
-      <header className="page-header">
-        <div className="page-header-inner">
-          <div className="header-logo" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}>
-            <span className="logo-mark-sm">A</span>
-            <span className="logo-text-sm">argupedia</span>
-          </div>
-          <nav className="header-nav">
-            <button className="nav-link active">Themes</button>
-          </nav>
-          <button className="logout-btn" onClick={logout}>Log out</button>
-        </div>
-      </header>
-
+      <Navbar />
       <main className="page-main">
         <div className="page-inner">
           <div className="page-title-row">

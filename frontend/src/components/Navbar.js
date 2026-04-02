@@ -1,67 +1,31 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import './Navbar.css';
- 
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
 const Navbar = () => {
+  const navigate = useNavigate();
   const location = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
- 
-  const navLinks = [
-    { label: 'Home', to: '/' },
-    { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Browse Arguments', to: '/arguments' },
-  ];
- 
+  const { logout } = useAuth();
+  const isActive = (path) => location.pathname === path;
+
   return (
-    <nav className="navbar">
-      <div className="navbar-inner">
-        <Link to="/" className="navbar-logo">
-          <span className="logo-mark">A</span>
-          <span className="logo-text">argupedia</span>
-        </Link>
- 
-        <div className="navbar-links">
-          {navLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className={`nav-link ${location.pathname === link.to ? 'active' : ''}`}
-            >
-              {link.label}
-            </Link>
-          ))}
+    <header className="page-header">
+      <div className="page-header-inner">
+        <div className="header-logo" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}>
+          <span className="logo-mark-sm">A</span>
+          <span className="logo-text-sm">argupedia</span>
         </div>
- 
-        <div className="navbar-actions">
-          <div className="user-pill">
-            <div className="user-avatar">
-              {/* Replace with real user initial */}
-              U
-            </div>
-            <span className="user-name">[ username here ]</span>
-          </div>
-          <Link to="/new-argument" className="btn-new">
-            + New Argument
-          </Link>
-        </div>
- 
-        <button className="mobile-menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
-          <span /><span /><span />
+        <nav className="header-nav">
+          <button className={`nav-link ${isActive('/themes') ? 'active' : ''}`} onClick={() => navigate('/themes')}>
+            Themes
+          </button>
+        </nav>
+        <button className="logout-btn" onClick={logout}>
+          Log out
         </button>
       </div>
- 
-      {menuOpen && (
-        <div className="mobile-menu">
-          {navLinks.map((link) => (
-            <Link key={link.to} to={link.to} className="mobile-nav-link" onClick={() => setMenuOpen(false)}>
-              {link.label}
-            </Link>
-          ))}
-          <Link to="/new-argument" className="mobile-nav-link cta">+ New Argument</Link>
-        </div>
-      )}
-    </nav>
+    </header>
   );
 };
- 
+
 export default Navbar;

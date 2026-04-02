@@ -159,12 +159,12 @@
   line-height: 1.5;
   color: var(--color-ink-muted);
   margin-bottom: 12px;
-  flex: 0 1 auto;
-  min-height: 0;
-  overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  -webkit-box-orient: vertical; 
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .theme-count {

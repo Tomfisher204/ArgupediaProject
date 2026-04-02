@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
@@ -21,39 +21,31 @@ const Dashboard = () => {
   const [userArguments, setUserArguments] = useState([]);
   const [argumentsLoading, setArgumentsLoading] = useState(true);
   const [pagination, setPagination] = useState(null);
-
-  const fetchUserArguments = async (page = 1) => {
+  
+  const fetchUserArguments = useCallback(async (page = 1) => {
     if (!user) return;
-
     try {
       setArgumentsLoading(true);
       const token = await getValidAccessToken();
       const response = await fetch(`http://localhost:8000/api/user/arguments/?page=${page}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       if (response.ok) {
         const data = await response.json();
         setUserArguments(data.results);
-        setPagination({
-          count: data.count,
-          next: data.next,
-          previous: data.previous,
-          currentPage: page,
-          totalPages: Math.ceil(data.count / 3),
-        });
+        setPagination({count: data.count, next: data.next, previous: data.previous, currentPage: page, totalPages: Math.ceil(data.count / 3)});
       }
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Failed to fetch user arguments:', error);
-    } finally {
+    } 
+    finally {
       setArgumentsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchUserArguments();
   }, [user, getValidAccessToken]);
 
+  useEffect(() => {fetchUserArguments()}, [fetchUserArguments]);
+  
   if (loading) return <div className="page-loading">Loading…</div>;
   if (!user) return <Navigate to="/" replace />;
 

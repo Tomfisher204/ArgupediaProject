@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import AddArgumentModal from '../components/AddArgumentModal';
-import Navbar from '../components/Navbar';
+import React, {useEffect, useState, useCallback} from 'react';
+import {useNavigate, useParams} from 'react-router-dom';
+import {useAuth} from '../context/AuthContext';
+import {AddArgumentModal, Navbar} from '../components';
 import './ArgumentPage.css';
 
 const ChildCard = ({ link, onClick }) => {
@@ -22,8 +21,8 @@ const ChildCard = ({ link, onClick }) => {
 };
 
 const ArgumentPage = () => {
-  const { '*': path } = useParams();
-  const { getValidAccessToken, logout } = useAuth();
+  const {'*': path} = useParams();
+  const {getValidAccessToken} = useAuth();
   const navigate = useNavigate();
   const [argument, setArgument] = useState(null);
   const [loading, setLoading]   = useState(true);
@@ -34,19 +33,19 @@ const ArgumentPage = () => {
   const currentArgumentId = argumentIds[argumentIds.length - 1];
 
   const buildBreadcrumbs = (arg) => {
-    if (!arg) return [];
-    const breadcrumbs = [
-      { label: 'Themes', path: '/themes' },
-      { label: arg.theme, path: `/themes/${arg.theme_id}` },
-    ];
+    const breadcrumbs = [];
+    if (arg) {
+      breadcrumbs.push({
+        label: arg.theme,
+        path: `/themes/${arg.theme_id}`,
+        isCurrent: false,
+      });
+    }
     argumentIds.forEach((id, index) => {
       const argPath = argumentIds.slice(0, index + 1).join('/');
       const isCurrent = index === argumentIds.length - 1;
-      const title = isCurrent && arg
-        ? (arg.field_values?.[0]?.value ?? 'Argument')
-        : `Argument ${id}`;
       breadcrumbs.push({
-        label: title.length > 20 ? title.substring(0, 20) + '...' : title,
+        label: `Argument ${id}`,
         path: `/arguments/${argPath}`,
         isCurrent,
       });
@@ -57,7 +56,7 @@ const ArgumentPage = () => {
   console.log(argument?.scheme_id);
   const breadcrumbs = buildBreadcrumbs(argument);
 
-  const fetchArgument = async () => {
+  const fetchArgument = useCallback(async (page = 1) => {
     if (!currentArgumentId) return;
     try {
       setLoading(true);
@@ -73,15 +72,27 @@ const ArgumentPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchArgument();
   }, [currentArgumentId, getValidAccessToken]);
+
+  useEffect(() => {fetchArgument()}, [fetchArgument]);
 
   return (
     <div className="argument-page">
       <Navbar />
+      <nav className="breadcrumbs">
+        {breadcrumbs.map((bc, index) => (
+          <React.Fragment key={index}>
+            {index > 0 && <span className="breadcrumb-sep">›</span>}
+            {bc.isCurrent ? (
+              <span className="breadcrumb-current">{bc.label}</span>
+            ) : (
+              <button className="breadcrumb-link" onClick={() => navigate(bc.path)}>
+                {bc.label}
+              </button>
+            )}
+          </React.Fragment>
+        ))}
+      </nav>
       <main className="page-main">
         <div className="page-inner">
 

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React, {useEffect, useState, useCallback} from 'react';
+import {useNavigate, useParams} from 'react-router-dom';
+import {useAuth} from '../context/AuthContext';
 import AddArgumentModal from '../components/AddArgumentModal';
 import Navbar from '../components/Navbar';
 import './ThemeArgumentsPage.css';
@@ -24,15 +24,15 @@ const ArgumentCard = ({ argument, onClick }) => {
 };
 
 const ThemeArgumentsPage = () => {
-  const { themeId } = useParams();
-  const { getValidAccessToken, logout } = useAuth();
+  const {themeId} = useParams();
+  const {getValidAccessToken} = useAuth();
   const navigate = useNavigate();
-  const [data, setData]       = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  const fetchArguments = async () => {
+  const fetchArguments = useCallback(async (page = 1) => {
     try {
       setLoading(true);
       const token = await getValidAccessToken();
@@ -47,11 +47,9 @@ const ThemeArgumentsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchArguments();
   }, [themeId, getValidAccessToken]);
+
+  useEffect(() => {fetchArguments()}, [fetchArguments]);
 
   return (
     <div className="theme-args-page">
@@ -60,7 +58,7 @@ const ThemeArgumentsPage = () => {
         <div className="page-inner">
 
           {loading && <p className="state-msg">Loading arguments…</p>}
-          {error   && <p className="state-msg error">{error}</p>}
+          {error && <p className="state-msg error">{error}</p>}
 
           {!loading && !error && data && (
             <>
@@ -78,13 +76,7 @@ const ThemeArgumentsPage = () => {
                 <p className="state-msg">No arguments in this theme yet.</p>
               ) : (
                 <div className="args-list">
-                  {data.arguments.map((arg) => (
-                    <ArgumentCard
-                      key={arg.id}
-                      argument={arg}
-                      onClick={() => navigate(`/arguments/${arg.id}`)}
-                    />
-                  ))}
+                  {data.arguments.map((arg) => (<ArgumentCard key={arg.id} argument={arg} onClick={() => navigate(`/arguments/${arg.id}`)}/>))}
                 </div>
               )}
             </>

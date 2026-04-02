@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React, {useEffect, useState, useCallback} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {useAuth} from '../context/AuthContext';
 import ThemeRequestModal from '../components/ThemeRequestModal';
 import Navbar from '../components/Navbar';
 import './ThemesPage.css';
 
 const ThemesPage = () => {
-  const { getValidAccessToken, logout } = useAuth();
+  const {getValidAccessToken} = useAuth();
   const navigate = useNavigate();
   const [themes, setThemes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,34 +14,26 @@ const ThemesPage = () => {
   const [pagination, setPagination] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  const fetchThemes = async (page = 1) => {
+  const fetchThemes = useCallback(async (page = 1) => {
     try {
       setLoading(true);
       const token = await getValidAccessToken();
-      const res = await fetch(`http://localhost:8000/api/themes/?page=${page}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Failed to load themes.');
+      const res = await fetch(`http://localhost:8000/api/themes/?page=${page}`,{headers: { Authorization: `Bearer ${token}` }});
+      if (!res.ok) throw new Error("Failed to load themes.");
       const data = await res.json();
       setThemes(data.results);
-      setPagination({
-        count: data.count,
-        next: data.next,
-        previous: data.previous,
-        currentPage: page,
-        totalPages: Math.ceil(data.count / 16),
-      });
+      setPagination({count: data.count, next: data.next, previous: data.previous, currentPage: page, totalPages: Math.ceil(data.count / 16)});
       setError(null);
-    } catch (err) {
+    } 
+    catch (err) {
       setError(err.message);
-    } finally {
+    } 
+    finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchThemes();
   }, [getValidAccessToken]);
+
+  useEffect(() => {fetchThemes()}, [fetchThemes]);
 
   return (
     <div className="themes-page">
@@ -57,7 +49,7 @@ const ThemesPage = () => {
           </div>
 
           {loading && <p className="state-msg">Loading themes…</p>}
-          {error   && <p className="state-msg error">{error}</p>}
+          {error && <p className="state-msg error">{error}</p>}
 
           {!loading && !error && themes.length === 0 && (
             <p className="state-msg">No themes yet.</p>
@@ -67,11 +59,7 @@ const ThemesPage = () => {
             <>
               <div className="themes-grid">
                 {themes.map((theme) => (
-                  <button
-                    key={theme.id}
-                    className="theme-card"
-                    onClick={() => navigate(`/themes/${theme.id}`)}
-                  >
+                  <button key={theme.id} className="theme-card" onClick={() => navigate(`/themes/${theme.id}`)}>
                     <p className="theme-title">{theme.title}</p>
                     {theme.description && (
                       <p className="theme-desc">{theme.description}</p>
@@ -84,21 +72,13 @@ const ThemesPage = () => {
               </div>
               {pagination && pagination.totalPages > 1 && (
                 <div className="pagination">
-                  <button
-                    className="pagination-btn"
-                    onClick={() => fetchThemes(pagination.currentPage - 1)}
-                    disabled={!pagination.previous}
-                  >
+                  <button className="pagination-btn" onClick={() => fetchThemes(pagination.currentPage - 1)} disabled={!pagination.previous}>
                     Previous
                   </button>
                   <span className="pagination-info">
                     Page {pagination.currentPage} of {pagination.totalPages}
                   </span>
-                  <button
-                    className="pagination-btn"
-                    onClick={() => fetchThemes(pagination.currentPage + 1)}
-                    disabled={!pagination.next}
-                  >
+                  <button className="pagination-btn" onClick={() => fetchThemes(pagination.currentPage + 1)} disabled={!pagination.next}>
                     Next
                   </button>
                 </div>

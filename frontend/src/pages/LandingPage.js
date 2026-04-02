@@ -4,22 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import './LandingPage.css';
 
 const FEATURES = [
-  {
-    title: 'Structured arguments',
-    desc: 'Arguments follow an argumentation scheme of your choice. Premises, conclusions, evidence — all clearly defined.',
-  },
-  {
-    title: 'Limited Bias',
-    desc: 'Critical questions force you to counter the argument not just disagree with it.',
-  },
-  {
-    title: 'Quality over Quantity',
-    desc: 'Focus on building strong, well-reasoned arguments rather than numerous weak ones.',
-  },
+  {title: 'Structured arguments', desc: 'Arguments follow an argumentation scheme of your choice. Premises, conclusions, evidence — all clearly defined.'},
+  {title: 'Limited Bias', desc: 'Critical questions force you to counter the argument not just disagree with it.'},
+  {title: 'Quality over Quantity', desc: 'Focus on building strong, well-reasoned arguments rather than numerous weak ones.'},
 ];
 
 const LandingPage = () => {
-  const { user, loading, error, login, signup } = useAuth();
+  const {user, loading, error, login, signup} = useAuth();
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [submitting, setSubmitting] = useState(false);
@@ -43,9 +34,11 @@ const LandingPage = () => {
       } else {
         await signup(form.username, form.email, form.password);
       }
-    } catch (err) {
+    } 
+    catch (err) {
       setFormError(err.message);
-    } finally {
+    } 
+    finally {
       setSubmitting(false);
     }
   };
@@ -58,22 +51,18 @@ const LandingPage = () => {
 
   return (
     <div className="landing">
-
-      {/* Left panel — branding + feature cards */}
       <div className="landing-left">
         <div className="landing-left-inner">
           <div className="landing-logo">
             <span className="logo-mark">A</span>
             <span className="logo-text">argupedia</span>
           </div>
-
           <h1 className="landing-headline">
             Argumentation done right.
           </h1>
           <p className="landing-sub">
             A structured debate platform. Build a case, face the counter, let the best reasoning win.
           </p>
-
           <div className="feature-cards">
             {FEATURES.map((f) => (
               <div key={f.title} className="feature-card">
@@ -85,25 +74,16 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Right panel — auth form */}
       <div className="landing-right">
         <div className="auth-box">
-
           <div className="auth-tabs">
-            <button
-              className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
-              onClick={() => switchMode('login')}
-            >
+            <button className={`auth-tab ${mode === 'login' ? 'active' : ''}`} onClick={() => switchMode('login')}>
               Log in
             </button>
-            <button
-              className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
-              onClick={() => switchMode('signup')}
-            >
+            <button className={`auth-tab ${mode === 'signup' ? 'active' : ''}`} onClick={() => switchMode('signup')}>
               Sign up
             </button>
           </div>
-
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="field">
               <label className="field-label" htmlFor="username">Username</label>
@@ -118,7 +98,6 @@ const LandingPage = () => {
                 required
               />
             </div>
-
             {mode === 'signup' && (
               <div className="field">
                 <label className="field-label" htmlFor="email">Email</label>
@@ -134,7 +113,6 @@ const LandingPage = () => {
                 />
               </div>
             )}
-
             <div className="field">
               <label className="field-label" htmlFor="password">Password</label>
               <input
@@ -148,11 +126,9 @@ const LandingPage = () => {
                 required
               />
             </div>
-
             {(formError || error) && (
               <p className="auth-error">{formError || error}</p>
             )}
-
             <button className="auth-submit" type="submit" disabled={submitting}>
               {submitting
                 ? 'Please wait…'
@@ -174,7 +150,6 @@ const LandingPage = () => {
 
         </div>
       </div>
-
     </div>
   );
 };

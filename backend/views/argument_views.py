@@ -8,6 +8,11 @@ from django.db.models import Q, Count
 from backend.models import ArgumentTheme, Argument
 from backend.serializers import ThemeSerializer, ArgumentSummarySerializer, ArgumentDetailSerializer
 
+
+class IsAdminPermission(IsAuthenticated):
+    def has_permission(self, request, view):
+        return super().has_permission(request, view) and request.user.is_admin
+
 class ThemeListView(APIView):
     """
     GET /api/themes/
@@ -103,6 +108,27 @@ class ArgumentDetailView(APIView):
 
         serializer = ArgumentDetailSerializer(argument)
         return Response(serializer.data)
+
+    def delete(self, request, argument_id):
+        # Only admins can delete arguments
+        if not request.user.is_admin:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        
+        argument = get_object_or_404(Argument, id=argument_id)
+        argument.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AdminThemeView(APIView):
+    permission_classes = [IsAdminPermission]
+
+    def delete(self, request, theme_id):
+        try:
+            theme = get_object_or_404(ArgumentTheme, id=theme_id)
+            theme.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response({'error': 'Cannot delete theme'}, status=400)
 
 
 class UserArgumentsView(APIView):

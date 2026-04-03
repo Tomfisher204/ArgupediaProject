@@ -1,4 +1,4 @@
-from backend.models import Argument, ArgmentFieldValue, User, ArgumentTheme, ArgumentScheme
+from backend.models import Argument, ArgumentFieldValue, User, ArgumentTheme, ArgumentScheme
 from faker import Faker
 import random
 

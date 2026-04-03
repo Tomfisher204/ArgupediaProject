@@ -199,6 +199,17 @@
   line-height: 1.4;
 }
 
+.btn-delete {
+  color: red;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .child-title {
   font-size: 14px;
   font-weight: 500;

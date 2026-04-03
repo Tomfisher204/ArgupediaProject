@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
-import {AddArgumentModal, Navbar} from '../components';
+import {AddArgumentModal, Navbar, ConfirmDialog, TrashIcon} from '../components';
 import '../css/pages/ArgumentPage.css';
 
 const buildPreview = (template, fieldValues) => {
@@ -40,12 +40,13 @@ const ChildCard = ({ link, onClick }) => {
 
 const ArgumentPage = () => {
   const {'*': path} = useParams();
-  const {getValidAccessToken} = useAuth();
+  const {getValidAccessToken, user} = useAuth();
   const navigate = useNavigate();
   const [argument, setArgument] = useState(null);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const argumentIds = path ? path.split('/').filter(id => id) : [];
   const currentArgumentId = argumentIds[argumentIds.length - 1];
@@ -92,6 +93,28 @@ const ArgumentPage = () => {
     }
   }, [currentArgumentId, getValidAccessToken]);
 
+  const deleteArgument = async () => {
+    setShowConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    setShowConfirm(false);
+    try {
+      const token = await getValidAccessToken();
+      const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        navigate(-1); // Go back
+      } else {
+        setError('Failed to delete argument.');
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   useEffect(() => {fetchArgument()}, [fetchArgument]);
 
   return (
@@ -123,6 +146,11 @@ const ArgumentPage = () => {
                 <div className="argument-top">
                   <span className="arg-scheme-label">{argument.scheme_name}</span>
                   <span className="arg-theme-label">{argument.theme}</span>
+                  {user?.is_admin && (
+                    <button className="btn-delete" onClick={deleteArgument}>
+                      <TrashIcon />
+                    </button>
+                  )}
                 </div>
                 <div className="argument-fields">
                   {(() => {
@@ -214,6 +242,13 @@ const ArgumentPage = () => {
             setShowModal(false);
             fetchArgument();
           }}
+        />
+      )}
+      {showConfirm && (
+        <ConfirmDialog
+          message="Are you sure you want to delete this argument?"
+          onConfirm={confirmDelete}
+          onCancel={() => setShowConfirm(false)}
         />
       )}
     </div>

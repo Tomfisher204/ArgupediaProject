@@ -1,8 +1,7 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
-import AddArgumentModal from '../components/AddArgumentModal';
-import Navbar from '../components/Navbar';
+import { AddArgumentModal, Navbar } from '../components';
 import '../css/pages/ThemeArgumentsPage.css';
 
 const buildPreview = (template, fieldValues) => {

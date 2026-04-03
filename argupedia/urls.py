@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from backend.views import SchemeListView, CreateArgumentView, ThemeRequestView, ThemeListView, ThemeArgumentsView, ArgumentDetailView, RegisterView, MeView, UserArgumentsView
+from backend.views import SchemeListView, CreateArgumentView, ThemeRequestView, ThemeListView, ThemeArgumentsView, ArgumentDetailView, RegisterView, MeView, UserArgumentsView, AdminStatsView, AdminThemeRequestsView, AdminThemeView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -17,4 +17,6 @@ urlpatterns = [
     path('api/arguments/create/', CreateArgumentView.as_view(), name='argument_create'),
     path('api/theme-requests/', ThemeRequestView.as_view(), name='theme_request'),
     path('api/user/arguments/', UserArgumentsView.as_view(), name='user_arguments'),
+    path('api/admin/stats/', AdminStatsView.as_view(), name='admin_stats'),
+    path('api/admin/theme/<int:theme_id>/', AdminThemeView.as_view(), name='admin_theme'),
 ]

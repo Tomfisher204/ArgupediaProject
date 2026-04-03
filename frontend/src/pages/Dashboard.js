@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
+import { Navbar } from '../components';
 import '../css/pages/Dashboard.css';
 
 const buildPreview = (template, fieldValues) => {

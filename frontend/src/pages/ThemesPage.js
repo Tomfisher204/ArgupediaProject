@@ -1,18 +1,19 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
-import ThemeRequestModal from '../components/ThemeRequestModal';
-import Navbar from '../components/Navbar';
+import { ThemeRequestModal, Navbar, ConfirmDialog, TrashIcon } from '../components';
 import '../css/pages/ThemesPage.css';
 
 const ThemesPage = () => {
-  const {getValidAccessToken} = useAuth();
+  const {getValidAccessToken, user} = useAuth();
   const navigate = useNavigate();
   const [themes, setThemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmThemeId, setConfirmThemeId] = useState(null);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('alpha_asc');
 
@@ -40,6 +41,31 @@ const ThemesPage = () => {
   }, [getValidAccessToken, search, sort]);
 
   useEffect(() => {fetchThemes()}, [fetchThemes]);
+
+  const deleteTheme = (themeId) => {
+    setConfirmThemeId(themeId);
+    setShowConfirm(true);
+  };
+
+  const confirmDeleteTheme = async () => {
+    if (!confirmThemeId) return;
+    setShowConfirm(false);
+    try {
+      const token = await getValidAccessToken();
+      const res = await fetch(`http://localhost:8000/api/admin/theme/${confirmThemeId}/`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        fetchThemes();
+      } else {
+        setError('Failed to delete theme.');
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+    setConfirmThemeId(null);
+  };
 
   return (
     <div className="themes-page">
@@ -88,15 +114,22 @@ const ThemesPage = () => {
             <>
               <div className="themes-grid">
                 {themes.map((theme) => (
-                  <button key={theme.id} className="theme-card" onClick={() => navigate(`/themes/${theme.id}`)}>
-                    <p className="theme-title">{theme.title}</p>
-                    {theme.description && (
-                      <p className="theme-desc">{theme.description}</p>
+                  <div key={theme.id} className="theme-card-wrapper">
+                    <button className="theme-card" onClick={() => navigate(`/themes/${theme.id}`)}>
+                      <p className="theme-title">{theme.title}</p>
+                      {theme.description && (
+                        <p className="theme-desc">{theme.description}</p>
+                      )}
+                      <p className="theme-count">
+                        {theme.argument_count} argument{theme.argument_count !== 1 ? 's' : ''}
+                      </p>
+                    </button>
+                    {user?.is_admin && (
+                      <button className="btn-delete-theme" onClick={(e) => { e.stopPropagation(); deleteTheme(theme.id); }}>
+                        <TrashIcon />
+                      </button>
                     )}
-                    <p className="theme-count">
-                      {theme.argument_count} argument{theme.argument_count !== 1 ? 's' : ''}
-                    </p>
-                  </button>
+                  </div>
                 ))}
               </div>
               {pagination && pagination.totalPages > 1 && (
@@ -126,7 +159,13 @@ const ThemesPage = () => {
           }}
         />
       )}
-
+      {showConfirm && (
+        <ConfirmDialog
+          message="Are you sure you want to delete this theme?"
+          onConfirm={confirmDeleteTheme}
+          onCancel={() => { setShowConfirm(false); setConfirmThemeId(null); }}
+        />
+      )}
     </div>
   );
 };

@@ -13,12 +13,18 @@ const ThemesPage = () => {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('alpha_asc');
 
-  const fetchThemes = useCallback(async (page = 1) => {
+  const fetchThemes = useCallback(async (page = 1, query = search, sortBy = sort) => {
     try {
       setLoading(true);
       const token = await getValidAccessToken();
-      const res = await fetch(`http://localhost:8000/api/themes/?page=${page}`,{headers: { Authorization: `Bearer ${token}` }});
+      let url = `http://localhost:8000/api/themes/?page=${page}`;
+      if (query) url += `&q=${encodeURIComponent(query)}`;
+      if (sortBy) url += `&sort=${encodeURIComponent(sortBy)}`;
+
+      const res = await fetch(url, {headers: { Authorization: `Bearer ${token}` }});
       if (!res.ok) throw new Error("Failed to load themes.");
       const data = await res.json();
       setThemes(data.results);
@@ -31,7 +37,7 @@ const ThemesPage = () => {
     finally {
       setLoading(false);
     }
-  }, [getValidAccessToken]);
+  }, [getValidAccessToken, search, sort]);
 
   useEffect(() => {fetchThemes()}, [fetchThemes]);
 
@@ -44,6 +50,29 @@ const ThemesPage = () => {
             <h1 className="page-title">Browse themes</h1>
             <p className="page-sub">Pick a theme to see its arguments.</p>
           </div>
+
+          <div className="theme-filters">
+            <input
+              className="theme-search"
+              type="text"
+              placeholder="Search themes..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); fetchThemes(1, e.target.value, sort); }}
+            />
+            <select
+              className="theme-sort"
+              value={sort}
+              onChange={(e) => { setSort(e.target.value); fetchThemes(1, search, e.target.value); }}
+            >
+              <option value="alpha_asc">Alphabetical ↑</option>
+              <option value="alpha_desc">Alphabetical ↓</option>
+              <option value="date_desc">Date created (newest)</option>
+              <option value="date_asc">Date created (oldest)</option>
+              <option value="arg_size_desc">Arg count ↓</option>
+              <option value="arg_size_asc">Arg count ↑</option>
+            </select>
+          </div>
+
           <div className="theme-request-section">
             <button className="btn-new" onClick={() => setShowModal(true)}>Request a Theme</button>
           </div>

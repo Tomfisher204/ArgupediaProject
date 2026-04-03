@@ -91,7 +91,27 @@
   padding: 0 24px;
 }
 
-.page-title-row { margin-bottom: 32px; }
+.page-title-row { margin-bottom: 16px; }
+
+.theme-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.theme-search, .theme-sort {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 14px;
+  background: var(--color-surface-raised);
+  color: var(--color-ink);
+}
+
+.theme-search {
+  flex: 1;
+}
 
 .page-title {
   font-family: var(--font-display);

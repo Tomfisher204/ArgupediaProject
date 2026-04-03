@@ -39,18 +39,21 @@ def generate_scheme_fixtures():
         {
             "name": "Action",
             "description": "In scenario S, action A achieves G and promotes value V.",
+            "template": "In **Scenario (S)**, **Action (A)** achieves **Goal (G)** and promotes **Value (V)**.",
             "created_by": users[0] if users else deleted,
             "fields": ["Scenario (S)", "Action (A)", "Goal (G)", "Value (V)"],
         },
         {
             "name": "Expert Opinion",
             "description": "Expert E in domain D says C.",
+            "template": "Expert **Expert (E)** in domain **Domain (D)** says **Claim (C)**.",
             "created_by": users[0] if users else deleted,
             "fields": ["Expert (E)", "Domain (D)", "Claim (C)"],
         },
         {
             "name": "Analogy",
             "description": "A and B are similar; if A has feature X, so will B.",
+            "template": "**Item A** and **Item B** are similar; if **Item A** has **Feature X**, so will **Item B**.",
             "created_by": users[0] if users else deleted,
             "fields": ["Item A", "Item B", "Feature X"],
         },
@@ -69,14 +72,16 @@ def try_create_scheme(data):
         name=data["name"],
         defaults={
             "description": data.get("description", ""),
+            "template": data.get("template", ""),
             "created_by": resolve_user(data.get("created_by")),
         },
     )
 
-    # Optional: update description if reseeding
+    # Optional: update description and template if reseeding
     if not created:
         scheme.description = data.get("description", "")
-        scheme.save(update_fields=["description"])
+        scheme.template = data.get("template", "")
+        scheme.save(update_fields=["description", "template"])
 
     ensure_scheme_fields(scheme, data.get("fields", []))
 

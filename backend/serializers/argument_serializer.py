@@ -10,16 +10,17 @@ class FieldValueSerializer(serializers.ModelSerializer):
 
 class ArgumentSummarySerializer(serializers.ModelSerializer):
     """Lightweight serializer used for cards (list views + child cards)."""
-    author      = serializers.CharField(source='author.username', read_only=True)
-    theme       = serializers.CharField(source='theme.title',     read_only=True)
+    author = serializers.CharField(source='author.username', read_only=True)
+    theme = serializers.CharField(source='theme.title',     read_only=True)
     scheme_name = serializers.CharField(source='scheme.name',     read_only=True)
+    scheme_template = serializers.CharField(source='scheme.template', read_only=True)
     field_values = FieldValueSerializer(many=True, read_only=True)
     child_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Argument
         fields = (
-            'id', 'author', 'theme', 'scheme_name',
+            'id', 'author', 'theme', 'scheme_name', 'scheme_template',
             'field_values', 'date_created',
             'child_count',
         )
@@ -29,9 +30,9 @@ class ArgumentSummarySerializer(serializers.ModelSerializer):
 
 class ChildArgumentSerializer(serializers.ModelSerializer):
     """Serializes a child argument card — includes the link's attacking flag."""
-    argument    = ArgumentSummarySerializer(source='child_argument', read_only=True)
-    attacking   = serializers.BooleanField(read_only=True)
-    question    = serializers.CharField(source='critical_question.question', read_only=True)
+    argument = ArgumentSummarySerializer(source='child_argument', read_only=True)
+    attacking = serializers.BooleanField(read_only=True)
+    question = serializers.CharField(source='critical_question.question', read_only=True)
 
     class Meta:
         model = ArgumentLink
@@ -39,18 +40,19 @@ class ChildArgumentSerializer(serializers.ModelSerializer):
 
 class ArgumentDetailSerializer(serializers.ModelSerializer):
     """Full detail serializer — includes field values and split children."""
-    author       = serializers.CharField(source='author.username',  read_only=True)
-    theme        = serializers.CharField(source='theme.title',      read_only=True)
-    theme_id     = serializers.IntegerField(source='theme.id',      read_only=True)
-    scheme_name  = serializers.CharField(source='scheme.name',      read_only=True)
-    scheme_id    = serializers.IntegerField(source='scheme.id',      read_only=True)
+    author = serializers.CharField(source='author.username',  read_only=True)
+    theme = serializers.CharField(source='theme.title',      read_only=True)
+    theme_id = serializers.IntegerField(source='theme.id',      read_only=True)
+    scheme_name = serializers.CharField(source='scheme.name',      read_only=True)
+    scheme_id = serializers.IntegerField(source='scheme.id',      read_only=True)
+    scheme_template = serializers.CharField(source='scheme.template', read_only=True)
     field_values = FieldValueSerializer(many=True, read_only=True)
-    attackers    = serializers.SerializerMethodField()
-    supporters   = serializers.SerializerMethodField()
+    attackers = serializers.SerializerMethodField()
+    supporters = serializers.SerializerMethodField()
 
     class Meta:
         model = Argument
-        fields = ('id', 'author', 'theme', 'theme_id', 'scheme_name', 'scheme_id', 'field_values', 'date_created', 'attackers', 'supporters')
+        fields = ('id', 'author', 'theme', 'theme_id', 'scheme_name', 'scheme_id', 'scheme_template', 'field_values', 'date_created', 'attackers', 'supporters')
 
     def get_attackers(self, obj):
         links = obj.child_links.filter(attacking=True).select_related(

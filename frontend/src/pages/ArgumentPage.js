@@ -4,6 +4,24 @@ import {useAuth} from '../context/AuthContext';
 import {AddArgumentModal, Navbar} from '../components';
 import '../css/pages/ArgumentPage.css';
 
+const buildPreview = (template, fieldValues) => {
+  if (!template) return null;
+  return template.replace(/\*\*([^*]+)\*\*/g, (_, key) => {
+    const val = fieldValues[key];
+    return val && val.trim() ? val : `**${key}**`;
+  });
+};
+
+const formatPreview = (preview) => {
+  if (!preview) return null;
+  return preview.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+};
+
 const ChildCard = ({ link, onClick }) => {
   const title = link.argument.field_values?.[0]?.value ?? '(no title)';
   return (
@@ -107,12 +125,23 @@ const ArgumentPage = () => {
                   <span className="arg-theme-label">{argument.theme}</span>
                 </div>
                 <div className="argument-fields">
-                  {argument.field_values.map((fv, i) => (
-                    <div key={i} className="field-row">
-                      <span className="field-name">{fv.field_name}</span>
-                      <p className="field-value">{fv.value}</p>
-                    </div>
-                  ))}
+                  {(() => {
+                    const fieldValues = {};
+                    argument.field_values.forEach((fv) => {
+                      fieldValues[fv.field_name] = fv.value;
+                    });
+                    const preview = buildPreview(argument.scheme_template, fieldValues);
+                    return preview ? (
+                      <div className="argument-preview">{formatPreview(preview)}</div>
+                    ) : (
+                      argument.field_values.map((fv, i) => (
+                        <div key={i} className="field-row">
+                          <span className="field-name">{fv.field_name}</span>
+                          <p className="field-value">{fv.value}</p>
+                        </div>
+                      ))
+                    );
+                  })()}
                 </div>
                 <div className="argument-byline">
                   <span>by {argument.author}</span>

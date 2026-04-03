@@ -5,8 +5,31 @@ import AddArgumentModal from '../components/AddArgumentModal';
 import Navbar from '../components/Navbar';
 import '../css/pages/ThemeArgumentsPage.css';
 
+const buildPreview = (template, fieldValues) => {
+  if (!template) return null;
+  return template.replace(/\*\*([^*]+)\*\*/g, (_, key) => {
+    const val = fieldValues[key];
+    return val && val.trim() ? val : `**${key}**`;
+  });
+};
+
+const formatPreview = (preview) => {
+  if (!preview) return null;
+  return preview.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+};
+
 const ArgumentCard = ({ argument, onClick }) => {
-  const title = argument.field_values?.[0]?.value ?? '(no title)';
+  const fieldValues = {};
+  argument.field_values?.forEach(field => {
+    fieldValues[field.field_name] = field.value;
+  });
+  const preview = buildPreview(argument.scheme_template, fieldValues);
+  const title = preview ? formatPreview(preview) : (argument.field_values?.[0]?.value ?? '(no title)');
   return (
     <button className="arg-card" onClick={onClick}>
       <div className="arg-card-meta">

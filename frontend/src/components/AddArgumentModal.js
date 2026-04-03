@@ -6,9 +6,19 @@ const API = 'http://localhost:8000';
 
 const buildPreview = (template, fieldValues) => {
   if (!template) return null;
-  return template.replace(/\{(\w+)\}/g, (_, key) => {
+  return template.replace(/\*\*([^*]+)\*\*/g, (_, key) => {
     const val = fieldValues[key];
-    return val && val.trim() ? val : `{${key}}`;
+    return val && val.trim() ? val : `**${key}**`;
+  });
+};
+
+const formatPreview = (preview) => {
+  if (!preview) return null;
+  return preview.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
   });
 };
 
@@ -182,7 +192,7 @@ const AddArgumentModal = ({themeId, parentArgumentId = null, parentSchemeId = nu
                     <span className="preview-scheme">{selectedScheme.name}</span>
                   </div>
                   {preview ? (
-                    <p className="preview-text">{preview}</p>
+                    <p className="preview-text">{formatPreview(preview)}</p>
                   ) : (
                     <div className="preview-fields">
                       {selectedScheme.fields.map((field) => (

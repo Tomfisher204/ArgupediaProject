@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
+from django.db.models import Q, Count
 from backend.models import ArgumentTheme, Argument
 from backend.serializers import ThemeSerializer, ArgumentSummarySerializer, ArgumentDetailSerializer
 
@@ -15,7 +16,35 @@ class ThemeListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        themes = ArgumentTheme.objects.all().order_by('title')
+        search = request.GET.get('q', '').strip()
+
+        themes = ArgumentTheme.objects.all()
+
+        if search:
+            themes = themes.filter(
+                Q(title__icontains=search) | Q(description__icontains=search)
+            )
+
+        themes = themes.annotate(
+            initial_argument_count=Count('argument', filter=Q(argument__parent_links__isnull=True))
+        )
+
+        sort = request.GET.get('sort', '').strip().lower()
+        if sort == 'arg_size_asc':
+            themes = themes.order_by('initial_argument_count', 'title')
+        elif sort == 'arg_size_desc':
+            themes = themes.order_by('-initial_argument_count', 'title')
+        elif sort == 'alpha_asc':
+            themes = themes.order_by('title')
+        elif sort == 'alpha_desc':
+            themes = themes.order_by('-title')
+        elif sort == 'date_asc':
+            themes = themes.order_by('date_created')
+        elif sort == 'date_desc':
+            themes = themes.order_by('-date_created')
+        else:
+            themes = themes.order_by('title')
+
         paginator = PageNumberPagination()
         paginator.page_size = 16
         result_page = paginator.paginate_queryset(themes, request)

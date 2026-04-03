@@ -4,6 +4,14 @@ import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import '../css/pages/Dashboard.css';
 
+const buildPreview = (template, fieldValues) => {
+  if (!template) return null;
+  return template.replace(/\*\*([^*]+)\*\*/g, (_, key) => {
+    const val = fieldValues[key];
+    return val && val.trim() ? val : `**${key}**`;
+  });
+};
+
 const STAT_FIELDS = [
   { label: 'Arguments made', key: 'argument_count' },
   { label: 'Reputation', key: 'reputation' },
@@ -110,11 +118,29 @@ const Dashboard = () => {
                         <span className="argument-scheme">{argument.scheme_name}</span>
                       </div>
                       <div className="argument-content">
-                        {argument.field_values.map((field, index) => (
-                          <div key={index} className="argument-field">
-                            <strong>{field.field_name}:</strong> {field.value}
-                          </div>
-                        ))}
+                        {(() => {
+                          const fieldValues = {};
+                          argument.field_values.forEach(field => {
+                            fieldValues[field.field_name] = field.value;
+                          });
+                          const preview = buildPreview(argument.scheme_template, fieldValues);
+                          return preview ? (
+                            <div className="argument-preview">
+                              {preview.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
+                                if (part.startsWith('**') && part.endsWith('**')) {
+                                  return <strong key={index}>{part.slice(2, -2)}</strong>;
+                                }
+                                return part;
+                              })}
+                            </div>
+                          ) : (
+                            argument.field_values.map((field, index) => (
+                              <div key={index} className="argument-field">
+                                <strong>{field.field_name}:</strong> {field.value}
+                              </div>
+                            ))
+                          );
+                        })()}
                       </div>
                       <div className="argument-footer">
                         <span className="argument-date">

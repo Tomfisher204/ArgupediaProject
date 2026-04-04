@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from backend.views import SchemeListView, CreateArgumentView, ThemeRequestView, ThemeListView, ThemeArgumentsView, ArgumentDetailView, RegisterView, MeView, UserArgumentsView, AdminStatsView, AdminThemeRequestsView, AdminThemeView
+from backend.views import SchemeListView, CreateArgumentView, ThemeRequestView, ThemeListView, ThemeArgumentsView, ArgumentDetailView, RegisterView, MeView, UserArgumentsView, AdminStatsView, AdminThemeRequestsView, AdminThemeView, ReportArgumentView, AdminReportedArgumentsView, ReportArgumentView, AdminReportedArgumentsView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -16,7 +16,10 @@ urlpatterns = [
     path('api/schemes/', SchemeListView.as_view(), name='scheme_list'),
     path('api/arguments/create/', CreateArgumentView.as_view(), name='argument_create'),
     path('api/theme-requests/', ThemeRequestView.as_view(), name='theme_request'),
+    path('api/arguments/<int:argument_id>/report/', ReportArgumentView.as_view(), name='report_argument'),
     path('api/user/arguments/', UserArgumentsView.as_view(), name='user_arguments'),
     path('api/admin/stats/', AdminStatsView.as_view(), name='admin_stats'),
+    path('api/admin/theme-requests/', AdminThemeRequestsView.as_view(), name='admin_theme_requests'),
+    path('api/admin/reported-arguments/', AdminReportedArgumentsView.as_view(), name='admin_reported_arguments'),
     path('api/admin/theme/<int:theme_id>/', AdminThemeView.as_view(), name='admin_theme'),
 ]

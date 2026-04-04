@@ -64,7 +64,7 @@ const Dashboard = () => {
       <Navbar />
       <main className="dash-main">
         <div className="dash-inner">
-          {/* Profile card */}
+
           <section className="profile-card">
             <div className="profile-avatar">{initial}</div>
             <div className="profile-info">
@@ -82,7 +82,6 @@ const Dashboard = () => {
             </div>
           </section>
 
-          {/* Stats grid */}
           <section className="stats-section">
             <h2 className="section-heading">Your stats</h2>
             <div className="stats-grid">
@@ -95,7 +94,6 @@ const Dashboard = () => {
             </div>
           </section>
 
-          {/* User's arguments */}
           <section className="arguments-section">
             <h2 className="section-heading">Your arguments</h2>
             {argumentsLoading ? (

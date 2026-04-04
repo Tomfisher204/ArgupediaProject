@@ -23,7 +23,13 @@ const formatPreview = (preview) => {
 };
 
 const ChildCard = ({ link, onClick }) => {
-  const title = link.argument.field_values?.[0]?.value ?? '(no title)';
+  const fieldValues = {};
+  link.argument.field_values?.forEach((fv) => {
+    fieldValues[fv.field_name] = fv.value;
+  });
+  const preview = buildPreview(link.argument.scheme_template, fieldValues);
+  const title = preview ? formatPreview(preview) : (link.argument.field_values?.[0]?.value ?? '(no title)');
+
   return (
     <button className={`child-card ${link.attacking ? 'attacking' : 'supporting'}`} onClick={onClick}>
       <p className="child-question">"{link.question}"</p>
@@ -47,6 +53,8 @@ const ArgumentPage = () => {
   const [error, setError]       = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [reported, setReported] = useState(false);
+  const [reportCount, setReportCount] = useState(0);
 
   const argumentIds = path ? path.split('/').filter(id => id) : [];
   const currentArgumentId = argumentIds[argumentIds.length - 1];
@@ -60,11 +68,18 @@ const ArgumentPage = () => {
         isCurrent: false,
       });
     }
+
     argumentIds.forEach((id, index) => {
       const argPath = argumentIds.slice(0, index + 1).join('/');
       const isCurrent = index === argumentIds.length - 1;
+
+      // Prefer the loaded argument title for the active node.
+      const label = (isCurrent && arg)
+        ? (arg.scheme_name ? `${arg.scheme_name} (${arg.id})` : `arg ${id}`)
+        : `arg ${id}`;
+
       breadcrumbs.push({
-        label: `Argument ${id}`,
+        label,
         path: `/arguments/${argPath}`,
         isCurrent,
       });
@@ -75,6 +90,20 @@ const ArgumentPage = () => {
   console.log(argument?.scheme_id);
   const breadcrumbs = buildBreadcrumbs(argument);
 
+  const resolveArgumentPath = (targetArgumentId) => {
+    const targetId = String(targetArgumentId);
+    const existingIndex = argumentIds.indexOf(targetId);
+
+    if (existingIndex !== -1) {
+      // If already in the breadcrumb trail, go back to that ancestor/previous location.
+      return `/arguments/${argumentIds.slice(0, existingIndex + 1).join('/')}`;
+    }
+
+    // Otherwise descend from current node.
+    const basePath = argumentIds.join('/');
+    return `/arguments/${basePath ? `${basePath}/${targetId}` : targetId}`;
+  };
+
   const fetchArgument = useCallback(async (page = 1) => {
     if (!currentArgumentId) return;
     try {
@@ -84,7 +113,10 @@ const ArgumentPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Failed to load argument.');
-      setArgument(await res.json());
+      const data = await res.json();
+      setArgument(data);
+      setReported(data.reported);
+      setReportCount(data.report_count);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -97,18 +129,19 @@ const ArgumentPage = () => {
     setShowConfirm(true);
   };
 
-  const confirmDelete = async () => {
-    setShowConfirm(false);
+  const toggleReport = async () => {
     try {
       const token = await getValidAccessToken();
-      const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/`, {
-        method: 'DELETE',
+      const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/report/`, {
+        method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        navigate(-1); // Go back
+        const data = await res.json();
+        setReported(data.reported);
+        setReportCount(data.report_count);
       } else {
-        setError('Failed to delete argument.');
+        setError('Failed to report argument.');
       }
     } catch (err) {
       setError(err.message);
@@ -146,6 +179,9 @@ const ArgumentPage = () => {
                 <div className="argument-top">
                   <span className="arg-scheme-label">{argument.scheme_name}</span>
                   <span className="arg-theme-label">{argument.theme}</span>
+                  <button className={`btn-report ${reported ? 'reported' : ''}`} onClick={toggleReport}>
+                    {reported ? 'Unreport' : 'Report'} ({reportCount})
+                  </button>
                   {user?.is_admin && (
                     <button className="btn-delete" onClick={deleteArgument}>
                       <TrashIcon />
@@ -195,7 +231,7 @@ const ArgumentPage = () => {
                         <ChildCard
                           key={link.id}
                           link={link}
-                          onClick={() => navigate(`/arguments/${path}/${link.argument.id}`)}
+                          onClick={() => navigate(resolveArgumentPath(link.argument.id))}
                         />
                       ))
                     )}
@@ -215,7 +251,7 @@ const ArgumentPage = () => {
                         <ChildCard
                           key={link.id}
                           link={link}
-                          onClick={() => navigate(`/arguments/${path}/${link.argument.id}`)}
+                          onClick={() => navigate(resolveArgumentPath(link.argument.id))}
                         />
                       ))
                     )}
@@ -247,7 +283,7 @@ const ArgumentPage = () => {
       {showConfirm && (
         <ConfirmDialog
           message="Are you sure you want to delete this argument?"
-          onConfirm={confirmDelete}
+          onConfirm={ConfirmDialog.Action.DELETE}
           onCancel={() => setShowConfirm(false)}
         />
       )}

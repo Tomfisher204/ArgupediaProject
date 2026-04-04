@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 from django.db.models import Count
 from backend.models import User, Argument, ArgumentTheme, ThemeRequest
 
@@ -32,8 +33,11 @@ class AdminThemeRequestsView(APIView):
 
     def get(self, request):
         theme_requests = ThemeRequest.objects.select_related('requested_by').order_by('-date_created')
+        paginator = PageNumberPagination()
+        paginator.page_size = 3
+        result_page = paginator.paginate_queryset(theme_requests, request)
         data = []
-        for tr in theme_requests:
+        for tr in result_page:
             data.append({
                 'id': tr.id,
                 'title': tr.title,
@@ -46,7 +50,61 @@ class AdminThemeRequestsView(APIView):
                     'username': tr.requested_by.username,
                 }
             })
-        return Response(data)
+        return paginator.get_paginated_response(data)
+
+    def post(self, request):
+        request_id = request.data.get('request_id')
+        action = request.data.get('action')
+        
+        if not request_id or not action:
+            return Response({'error': 'request_id and action are required'}, status=400)
+        
+        try:
+            theme_request = ThemeRequest.objects.get(id=request_id)
+        except ThemeRequest.DoesNotExist:
+            return Response({'error': 'Theme request not found'}, status=404)
+        
+        if action == 'approve':
+            theme_request.status = 'approved'
+            # TODO: Create the actual theme if needed
+        elif action == 'reject':
+            theme_request.status = 'rejected'
+        else:
+            return Response({'error': 'Invalid action'}, status=400)
+        
+        theme_request.save()
+        return Response({'status': 'success'})
+
+
+class AdminReportedArgumentsView(APIView):
+    permission_classes = [IsAdminPermission]
+
+    def get(self, request):
+        arguments = Argument.objects.filter(reported_by__isnull=False).distinct().annotate(
+            report_count=Count('reported_by')
+        ).order_by('-report_count', '-date_created').select_related('author', 'theme', 'scheme').prefetch_related('field_values__scheme_field')
+        
+        paginator = PageNumberPagination()
+        paginator.page_size = 3
+        result_page = paginator.paginate_queryset(arguments, request)
+        
+        data = []
+        for arg in result_page:
+            data.append({
+                'id': arg.id,
+                'theme': arg.theme.title,
+                'scheme_name': arg.scheme.name,
+                'scheme_template': arg.scheme.template,
+                'author': arg.author.username,
+                'report_count': arg.report_count,
+                'date_created': arg.date_created,
+                'field_values': [
+                    {'field_name': fv.scheme_field.name, 'value': fv.value}
+                    for fv in arg.field_values.all()
+                ]
+            })
+        
+        return paginator.get_paginated_response(data)
 
     def post(self, request):
         action = request.data.get('action')

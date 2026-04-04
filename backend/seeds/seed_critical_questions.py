@@ -1,68 +1,38 @@
+import random
 from backend.models import CriticalQuestion, ArgumentScheme
-
-
-# -----------------------------
-# Entry Point
-# -----------------------------
 
 def seed_critical_questions(test=False):
     print("Seeding Critical Questions", end="\r")
-
     generate_cq_fixtures()
-
     print("Critical Question seeding complete.")
 
-
-# -----------------------------
-# Fixtures
-# -----------------------------
-
 def generate_cq_fixtures():
-    cq_map = {
+    cq_fixtures = {
         "Action": [
-            "Does action A really achieve goal G?",
-            "Could action A have negative consequences contrary to value V?",
-            "Is scenario S correctly represented?",
+            ("Does action A really achieve goal G?", True),
+            ("Could action A have negative consequences contrary to value V?", False),
+            ("Is scenario S correctly represented?", False),
         ],
         "Expert Opinion": [
-            "Is expert E truly credible in domain S?",
-            "Could expert E be biased?",
-            "Is there conflicting evidence against claim X?",
+            ("Is expert E truly credible in domain S?", True),
+            ("Could expert E be biased?", False),
+            ("Is there conflicting evidence against claim X?", False),
         ],
         "Analogy": [
-            "Are A and B really comparable?",
-            "Does feature X of A necessarily apply to B?",
-            "Could there be important differences between A and B?",
+            ("Are A and B really comparable?", True),
+            ("Does feature X of A necessarily apply to B?", False),
+            ("Could there be important differences between A and B?", False),
         ],
     }
 
     for scheme in ArgumentScheme.objects.all():
-        questions = cq_map.get(
-            scheme.name,
-            ["Generic critical question"],
-        )
-
-        ensure_critical_questions(scheme, questions)
-
-
-# -----------------------------
-# Idempotent Sync
-# -----------------------------
+        fixture_questions = cq_fixtures.get(scheme.name)
+        ensure_critical_questions(scheme, fixture_questions)
 
 def ensure_critical_questions(scheme, questions):
-    """
-    Ensures all required critical questions exist.
-    Safe to rerun indefinitely.
-    """
-
-    existing_questions = set(
-        CriticalQuestion.objects.filter(scheme=scheme)
-        .values_list("question", flat=True)
-    )
-
-    for question_text in questions:
-        if question_text not in existing_questions:
-            CriticalQuestion.objects.create(
-                scheme=scheme,
-                question=question_text,
-            )
+    for question_text, two_way in questions:
+        CriticalQuestion.objects.create(
+            scheme=scheme,
+            question=question_text,
+            two_way=two_way,
+        )

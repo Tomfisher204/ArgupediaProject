@@ -49,10 +49,12 @@ class ArgumentDetailSerializer(serializers.ModelSerializer):
     field_values = FieldValueSerializer(many=True, read_only=True)
     attackers = serializers.SerializerMethodField()
     supporters = serializers.SerializerMethodField()
+    reported = serializers.SerializerMethodField()
+    report_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Argument
-        fields = ('id', 'author', 'theme', 'theme_id', 'scheme_name', 'scheme_id', 'scheme_template', 'field_values', 'date_created', 'attackers', 'supporters')
+        fields = ('id', 'author', 'theme', 'theme_id', 'scheme_name', 'scheme_id', 'scheme_template', 'field_values', 'date_created', 'attackers', 'supporters', 'reported', 'report_count')
 
     def get_attackers(self, obj):
         links = obj.child_links.filter(attacking=True).select_related(
@@ -67,6 +69,15 @@ class ArgumentDetailSerializer(serializers.ModelSerializer):
             'child_argument__author', 'child_argument__theme', 'child_argument__scheme'
         )
         return ChildArgumentSerializer(links, many=True).data
+
+    def get_reported(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.reported_by.filter(id=request.user.id).exists()
+        return False
+
+    def get_report_count(self, obj):
+        return obj.reported_by.count()
 
 class ArgumentFieldValueInputSerializer(serializers.Serializer):
     scheme_field_id = serializers.IntegerField()

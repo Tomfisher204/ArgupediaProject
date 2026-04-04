@@ -151,3 +151,28 @@ class UserArgumentsView(APIView):
         result_page = paginator.paginate_queryset(arguments, request)
         serializer = ArgumentSummarySerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
+
+
+class ReportArgumentView(APIView):
+    """
+    POST /api/arguments/<argument_id>/report/
+    Toggle report status for an argument by the current user.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, argument_id):
+        argument = get_object_or_404(Argument, id=argument_id)
+        
+        if argument.reported_by.filter(id=request.user.id).exists():
+            # Unreport
+            argument.reported_by.remove(request.user)
+            reported = False
+        else:
+            # Report
+            argument.reported_by.add(request.user)
+            reported = True
+        
+        return Response({
+            'reported': reported,
+            'report_count': argument.reported_by.count()
+        })

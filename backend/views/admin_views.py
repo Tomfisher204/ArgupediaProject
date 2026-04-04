@@ -1,9 +1,10 @@
+import re
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Count
-from backend.models import User, Argument, ArgumentTheme, ThemeRequest, ArgumentScheme, CriticalQuestion
+from backend.models import User, Argument, ArgumentTheme, ThemeRequest, ArgumentScheme, CriticalQuestion, SchemeField
 
 
 class IsAdminPermission(IsAuthenticated):
@@ -165,12 +166,21 @@ class AdminSchemesView(APIView):
             template=template,
             created_by=request.user
         )
+        
+        field_names = re.findall(r'\*\*(.*?)\*\*', template)
+        for order, field_name in enumerate(field_names):
+            SchemeField.objects.create(
+                scheme=scheme,
+                name=field_name.strip(),
+                order=order
+            )
+        
         return Response({
             'id': scheme.id,
             'name': scheme.name,
             'description': scheme.description,
             'template': scheme.template,
-            'critical_questions': []
+            'fields': [{'id': f.id, 'name': f.name} for f in scheme.fields.all()]
         })
 
     def delete(self, request, scheme_id=None):

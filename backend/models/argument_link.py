@@ -20,14 +20,13 @@ class ArgumentLink(models.Model):
         super().save(*args, **kwargs)
 
         if creating and not reciprocal_mode and self.critical_question.two_way:
-            # Create a reciprocal link so both arguments are children of each other
             reciprocal = ArgumentLink.objects.filter(
                 parent_argument=self.child_argument,
                 child_argument=self.parent_argument,
                 critical_question=self.critical_question,
                 attacking=self.attacking,
             ).exists()
-
+            
             if not reciprocal:
                 try:
                     self._thread_local.creating_two_way = True

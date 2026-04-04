@@ -140,11 +140,11 @@ const AdminDashboard = () => {
 
           {/* Theme requests */}
           <section className="theme-requests-section">
-            <h2 className="section-heading">Theme Requests</h2>
+            <h2 className="section-heading">Pending Theme Requests</h2>
             {requestsLoading ? (
-              <p className="loading-text">Loading theme requests...</p>
+              <p className="loading-text">Loading pending theme requests...</p>
             ) : themeRequests.length === 0 ? (
-              <p className="placeholder-text">No theme requests at the moment.</p>
+              <p className="placeholder-text">No pending theme requests at the moment.</p>
             ) : (
               <>
                 <div className="theme-requests-list">

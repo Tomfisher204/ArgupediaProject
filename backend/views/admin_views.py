@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Count
-from backend.models import User, Argument, ArgumentTheme, ThemeRequest
+from backend.models import User, Argument, ArgumentTheme, ThemeRequest, ArgumentScheme, CriticalQuestion
 
 
 class IsAdminPermission(IsAuthenticated):
@@ -32,7 +32,7 @@ class AdminThemeRequestsView(APIView):
     permission_classes = [IsAdminPermission]
 
     def get(self, request):
-        theme_requests = ThemeRequest.objects.select_related('requested_by').order_by('-date_created')
+        theme_requests = ThemeRequest.objects.filter(status='pending').select_related('requested_by').order_by('-date_created')
         paginator = PageNumberPagination()
         paginator.page_size = 3
         result_page = paginator.paginate_queryset(theme_requests, request)
@@ -130,3 +130,91 @@ class AdminReportedArgumentsView(APIView):
         tr.reviewed_at = timezone.now()
         tr.save()
         return Response({'status': 'success'})
+
+
+class AdminSchemesView(APIView):
+    permission_classes = [IsAdminPermission]
+
+    def get(self, request):
+        schemes = ArgumentScheme.objects.prefetch_related('critical_questions').order_by('name')
+        data = []
+        for scheme in schemes:
+            data.append({
+                'id': scheme.id,
+                'name': scheme.name,
+                'description': scheme.description,
+                'template': scheme.template,
+                'critical_questions': [
+                    {'id': cq.id, 'question': cq.question}
+                    for cq in scheme.critical_questions.all()
+                ]
+            })
+        return Response(data)
+
+    def post(self, request):
+        name = request.data.get('name')
+        description = request.data.get('description', '')
+        template = request.data.get('template')
+        
+        if not name or not template:
+            return Response({'error': 'name and template are required'}, status=400)
+        
+        scheme = ArgumentScheme.objects.create(
+            name=name,
+            description=description,
+            template=template,
+            created_by=request.user
+        )
+        return Response({
+            'id': scheme.id,
+            'name': scheme.name,
+            'description': scheme.description,
+            'template': scheme.template,
+            'critical_questions': []
+        })
+
+    def delete(self, request, scheme_id=None):
+        if not scheme_id:
+            return Response({'error': 'scheme_id is required'}, status=400)
+        
+        try:
+            scheme = ArgumentScheme.objects.get(id=scheme_id)
+            scheme.delete()
+            return Response({'status': 'success'})
+        except ArgumentScheme.DoesNotExist:
+            return Response({'error': 'Scheme not found'}, status=404)
+
+
+class AdminCriticalQuestionsView(APIView):
+    permission_classes = [IsAdminPermission]
+
+    def post(self, request):
+        question = request.data.get('question')
+        scheme_id = request.data.get('scheme_id')
+        
+        if not question or not scheme_id:
+            return Response({'error': 'question and scheme_id are required'}, status=400)
+        
+        try:
+            scheme = ArgumentScheme.objects.get(id=scheme_id)
+            cq = CriticalQuestion.objects.create(
+                scheme=scheme,
+                question=question
+            )
+            return Response({
+                'id': cq.id,
+                'question': cq.question
+            })
+        except ArgumentScheme.DoesNotExist:
+            return Response({'error': 'Scheme not found'}, status=404)
+
+    def delete(self, request, cq_id=None):
+        if not cq_id:
+            return Response({'error': 'cq_id is required'}, status=400)
+        
+        try:
+            cq = CriticalQuestion.objects.get(id=cq_id)
+            cq.delete()
+            return Response({'status': 'success'})
+        except CriticalQuestion.DoesNotExist:
+            return Response({'error': 'Critical question not found'}, status=404)

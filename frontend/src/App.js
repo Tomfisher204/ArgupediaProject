@@ -1,7 +1,7 @@
 import React from 'react';
 import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
 import {AuthProvider, useAuth} from './context/AuthContext';
-import {LandingPage, Dashboard, AdminDashboard, ThemesPage, ThemeArgumentsPage, ArgumentPage} from './pages';
+import {LandingPage, Dashboard, AdminDashboard, AdminSchemes, ThemesPage, ThemeArgumentsPage, ArgumentPage} from './pages';
 import './css/App.css';
 
 const PublicRoute = ({ children }) => {
@@ -25,6 +25,7 @@ const AppRoutes = () => {
       <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
       <Route path="/dashboard" element={<PrivateRoute>{isAdmin ? <Navigate to="/admin-dashboard" replace /> : <Dashboard />}</PrivateRoute>} />
       <Route path="/admin-dashboard" element={<PrivateRoute>{isAdmin ? <AdminDashboard /> : <Navigate to="/dashboard" replace />}</PrivateRoute>} />
+      <Route path="/admin/schemes" element={<PrivateRoute>{isAdmin ? <AdminSchemes /> : <Navigate to="/dashboard" replace />}</PrivateRoute>} />
       <Route path="/themes" element={<PrivateRoute><ThemesPage /></PrivateRoute>} />
       <Route path="/themes/:themeId" element={<PrivateRoute><ThemeArgumentsPage /></PrivateRoute>} />
       <Route path="/arguments/*" element={<PrivateRoute><ArgumentPage /></PrivateRoute>} />

@@ -6,7 +6,7 @@ import '../css/components/Navbar.css';
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -20,6 +20,11 @@ const Navbar = () => {
           <button className={`nav-link ${isActive('/themes') ? 'active' : ''}`} onClick={() => navigate('/themes')}>
             Themes
           </button>
+          {user?.is_admin && (
+            <button className={`nav-link ${isActive('/admin/schemes') ? 'active' : ''}`} onClick={() => navigate('/admin/schemes')}>
+              Schemes
+            </button>
+          )}
         </nav>
         <button className="logout-btn" onClick={logout}>
           Log out

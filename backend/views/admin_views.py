@@ -191,19 +191,23 @@ class AdminCriticalQuestionsView(APIView):
     def post(self, request):
         question = request.data.get('question')
         scheme_id = request.data.get('scheme_id')
-        
+        two_way = request.data.get('two_way', False)  # NEW
         if not question or not scheme_id:
-            return Response({'error': 'question and scheme_id are required'}, status=400)
-        
+            return Response(
+                {'error': 'question and scheme_id are required'},
+                status=400
+            )
         try:
             scheme = ArgumentScheme.objects.get(id=scheme_id)
             cq = CriticalQuestion.objects.create(
                 scheme=scheme,
-                question=question
+                question=question,
+                two_way=bool(two_way)  # NEW
             )
             return Response({
                 'id': cq.id,
-                'question': cq.question
+                'question': cq.question,
+                'two_way': cq.two_way   # NEW
             })
         except ArgumentScheme.DoesNotExist:
             return Response({'error': 'Scheme not found'}, status=404)
@@ -211,10 +215,12 @@ class AdminCriticalQuestionsView(APIView):
     def delete(self, request, cq_id=None):
         if not cq_id:
             return Response({'error': 'cq_id is required'}, status=400)
-        
         try:
             cq = CriticalQuestion.objects.get(id=cq_id)
             cq.delete()
             return Response({'status': 'success'})
         except CriticalQuestion.DoesNotExist:
-            return Response({'error': 'Critical question not found'}, status=404)
+            return Response(
+                {'error': 'Critical question not found'},
+                status=404
+            )

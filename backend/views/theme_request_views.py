@@ -4,13 +4,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from backend.serializers import ThemeRequestSerializer
 
-
 class ThemeRequestView(APIView):
+    """
+    POST /api/theme-requests/
+    """
     permission_classes = [IsAuthenticated]
-
     def post(self, request):
-        serializer = ThemeRequestSerializer(data=request.data, context={'request': request})
-        print(serializer)
+        serializer = ThemeRequestSerializer(
+            data=request.data,
+            context={'request': request},
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

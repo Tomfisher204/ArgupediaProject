@@ -179,6 +179,9 @@ const ArgumentPage = () => {
                 <div className="argument-top">
                   <span className="arg-scheme-label">{argument.scheme_name}</span>
                   <span className="arg-theme-label">{argument.theme}</span>
+                  <span className={`arg-winning-label ${argument.is_winning ? 'winning' : 'losing'}`}>
+                    {argument.is_winning ? 'Winning' : 'Losing'}
+                  </span>
                   <button className={`btn-report ${reported ? 'reported' : ''}`} onClick={toggleReport}>
                     {reported ? 'Unreport' : 'Report'} ({reportCount})
                   </button>

@@ -9,5 +9,4 @@ class ThemeSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'description', 'date_created', 'argument_count')
 
     def get_argument_count(self, obj):
-        # Count only initial arguments (those with no parent links)
-        return Argument.objects.filter(theme=obj).exclude(parent_links__isnull=False).count()
+        return Argument.objects.filter(theme=obj).filter(root=True).count()

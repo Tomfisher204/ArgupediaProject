@@ -48,6 +48,4 @@ class User(AbstractUser):
         if self.password:
             password_regex = r'^(?=.*[A-Z])(?=.*\d).{8,}$'
             if not re.match(password_regex, self.password):
-                raise ValidationError({
-                    'password': "Password must be at least 8 characters long, contain at least one uppercase letter and one number."
-                })
+                raise ValidationError({'password': "Password must be at least 8 characters long, contain at least one uppercase letter and one number."})

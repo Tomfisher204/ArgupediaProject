@@ -108,6 +108,7 @@ class CreateArgumentSerializer(serializers.Serializer):
     parent_argument_id   = serializers.IntegerField(required=False, allow_null=True)
     critical_question_id = serializers.IntegerField(required=False, allow_null=True)
     attacking            = serializers.BooleanField(required=False, default=True)
+    root                 = serializers.BooleanField(required=False, default=False)
 
     def validate(self, data):
         has_parent   = bool(data.get('parent_argument_id'))

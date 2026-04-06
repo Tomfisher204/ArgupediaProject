@@ -52,8 +52,7 @@ class ThemeArgumentsView(APIView):
 
         initial_arguments = (
             Argument.objects
-            .filter(theme=theme)
-            .exclude(parent_links__isnull=False)
+            .filter(theme=theme, root=True)
             .select_related('author', 'theme', 'scheme')
             .prefetch_related('field_values__scheme_field')
             .distinct()

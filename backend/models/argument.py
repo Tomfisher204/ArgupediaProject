@@ -9,6 +9,7 @@ class Argument(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     reported_by = models.ManyToManyField(User, related_name='reported_arguments', blank=True)
     is_winning = models.BooleanField(default=True)
+    root = models.BooleanField(default=False)
 
 class ArgumentFieldValue(models.Model):
     """Defines the value for one field in an argument."""

@@ -24,7 +24,6 @@ def generate_cq_fixtures():
             ("Could there be important differences between A and B?", False),
         ],
     }
-
     for scheme in ArgumentScheme.objects.all():
         fixture_questions = cq_fixtures.get(scheme.name)
         ensure_critical_questions(scheme, fixture_questions)

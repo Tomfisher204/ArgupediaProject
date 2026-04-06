@@ -13,4 +13,4 @@ class Command(BaseCommand):
         SchemeField.objects.all().delete()
         ArgumentScheme.objects.all().delete()
         ArgumentTheme.objects.all().delete()
-        User.objects.all().delete()
+        #User.objects.all().delete()

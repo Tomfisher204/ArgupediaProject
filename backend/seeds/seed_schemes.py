@@ -1,35 +1,17 @@
 from backend.models import ArgumentScheme, SchemeField, User
 
-
-# -----------------------------
-# Helpers (STANDARD PATTERN)
-# -----------------------------
-
 def get_users():
     return list(User.objects.all())
-
 
 def resolve_user(user):
     if isinstance(user, User):
         return user
     return User.deleted_user()
 
-
-# -----------------------------
-# Entry Point
-# -----------------------------
-
 def seed_argument_schemes(test=False):
     print("Seeding Argument Schemes", end="\r")
-
     generate_scheme_fixtures()
-
     print("Argument Scheme seeding complete.")
-
-
-# -----------------------------
-# Fixtures
-# -----------------------------
 
 def generate_scheme_fixtures():
     users = get_users()
@@ -58,14 +40,8 @@ def generate_scheme_fixtures():
             "fields": ["Item A", "Item B", "Feature X"],
         },
     ]
-
     for data in scheme_fixtures:
         try_create_scheme(data)
-
-
-# -----------------------------
-# Creation Logic
-# -----------------------------
 
 def try_create_scheme(data):
     scheme, created = ArgumentScheme.objects.get_or_create(
@@ -76,30 +52,16 @@ def try_create_scheme(data):
             "created_by": resolve_user(data.get("created_by")),
         },
     )
-
-    # Optional: update description and template if reseeding
     if not created:
         scheme.description = data.get("description", "")
         scheme.template = data.get("template", "")
         scheme.save(update_fields=["description", "template"])
-
     ensure_scheme_fields(scheme, data.get("fields", []))
 
-
-# -----------------------------
-# Field Sync (IDEMPOTENT)
-# -----------------------------
-
 def ensure_scheme_fields(scheme, field_names):
-    """
-    Ensures scheme has exactly the required fields.
-    Safe to rerun repeatedly.
-    """
-
     existing_fields = {
         f.name: f for f in SchemeField.objects.filter(scheme=scheme)
     }
-
     for name in field_names:
         if name not in existing_fields:
             SchemeField.objects.create(

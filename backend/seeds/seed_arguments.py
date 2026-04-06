@@ -1,18 +1,94 @@
-from backend.models import Argument, ArgumentFieldValue, User, ArgumentTheme, ArgumentScheme
-from faker import Faker
 import random
+from faker import Faker
+from backend.models import Argument, ArgumentFieldValue, ArgumentLink, ArgumentTheme, ArgumentScheme, CriticalQuestion, User
 
-NUM_ARGUMENTS = 120
 faker = Faker("en_GB")
 
-def get_users():
-    return list(User.objects.all())
-
-def get_themes():
+def seed_arguments(test=False):
+    print("Seeding Arguments", end="\r")
     themes = list(ArgumentTheme.objects.all())
     if not themes:
         themes = [ArgumentTheme.get_or_create_other_theme()]
-    return themes
+    cq_map = build_cq_map()
+    for theme in themes:
+        seed_theme_trees(theme, cq_map)
+    print("Argument seeding complete.")
+
+def seed_theme_trees(theme, cq_map):
+    users = get_users()
+    schemes = get_schemes()
+    if not schemes:
+        return
+    num_roots = random.randint(3, 5)
+    for _ in range(num_roots):
+        root = create_argument(theme, users, schemes)
+        children = create_children(
+            parent=root,
+            theme=theme,
+            users=users,
+            schemes=schemes,
+            cq_map=cq_map,
+            min_children=2,
+        )
+        for child in children:
+            create_children(
+                parent=child,
+                theme=theme,
+                users=users,
+                schemes=schemes,
+                cq_map=cq_map,
+                min_children=2,
+            )
+
+def create_argument(theme, users, schemes, root=True):
+    scheme = random.choice(schemes)
+    argument = Argument.objects.create(
+        author=resolve_user(random.choice(users) if users else None),
+        theme=theme,
+        scheme=scheme,
+        root=root,
+    )
+    populate_fields(argument, scheme)
+    return argument
+
+
+def populate_fields(argument, scheme):
+    field_values = [
+        ArgumentFieldValue(
+            argument=argument,
+            scheme_field=field,
+            value=" ".join(faker.words(nb=random.randint(1, 4))),
+        )
+        for field in scheme.fields.all()
+    ]
+    ArgumentFieldValue.objects.bulk_create(field_values)
+
+def create_children(parent, theme, users, schemes, cq_map, min_children=2):
+    children = []
+    cqs = cq_map.get(parent.scheme_id)
+    if not cqs:
+        return children
+    num_children = random.randint(min_children, min_children + 1)
+    for _ in range(num_children):
+        child = create_argument(theme, users, schemes, False)
+        cq = random.choice(cqs)
+        ArgumentLink.objects.create(
+            parent_argument=parent,
+            child_argument=child,
+            critical_question=cq,
+            attacking=random.choice([True, False]),
+        )
+        children.append(child)
+    return children
+
+def build_cq_map():
+    cq_map = {}
+    for cq in CriticalQuestion.objects.select_related("scheme"):
+        cq_map.setdefault(cq.scheme_id, []).append(cq)
+    return cq_map
+
+def get_users():
+    return list(User.objects.all())
 
 def get_schemes():
     return list(
@@ -23,73 +99,3 @@ def resolve_user(user):
     if isinstance(user, User):
         return user
     return User.deleted_user()
-
-def seed_arguments(test=False):
-    print("Seeding Arguments", end="\r")
-    generate_argument_fixtures()
-    if not test:
-        generate_random_arguments()
-    print("Argument seeding complete.")
-
-def generate_argument_fixtures():
-    users = get_users()
-    themes = get_themes()
-    schemes = get_schemes()
-    if not schemes:
-        return
-    fixtures = [
-        {
-            "author": users[1] if len(users) > 1 else None,
-            "theme": themes[0],
-            "scheme": schemes[0],
-        },
-        {
-            "author": users[1] if len(users) > 1 else None,
-            "theme": themes[min(1, len(themes)-1)],
-            "scheme": schemes[min(1, len(schemes)-1)],
-        },
-        {
-            "author": users[2] if len(users) > 2 else None,
-            "theme": themes[min(2, len(themes)-1)],
-            "scheme": schemes[min(2, len(schemes)-1)],
-        },
-    ]
-    for data in fixtures:
-        try_create_argument(data)
-
-def generate_random_arguments():
-    users = get_users()
-    themes = get_themes()
-    schemes = get_schemes()
-    if not schemes:
-        return
-    attempts = 0
-    max_attempts = NUM_ARGUMENTS*5
-    while (
-        Argument.objects.count() < NUM_ARGUMENTS
-        and attempts < max_attempts
-    ):
-        attempts += 1
-        try_create_argument({
-            "author": random.choice(users) if users else None,
-            "theme": random.choice(themes),
-            "scheme": random.choice(schemes),
-        })
-
-def try_create_argument(data):
-    scheme = data["scheme"]
-    argument = Argument.objects.create(
-        author=resolve_user(data.get("author")),
-        theme=data.get("theme")
-        or ArgumentTheme.get_or_create_other_theme(),
-        scheme=scheme,
-    )
-    field_values = [
-        ArgumentFieldValue(
-            argument = argument,
-            scheme_field = field,
-            value = " ".join(faker.words(nb=random.randint(1, 4)))
-        )
-        for field in scheme.fields.all()
-    ]
-    ArgumentFieldValue.objects.bulk_create(field_values)

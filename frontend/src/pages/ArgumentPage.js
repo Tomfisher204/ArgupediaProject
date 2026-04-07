@@ -147,8 +147,21 @@ const ArgumentPage = () => {
       setError(err.message);
     }
   };
-
   useEffect(() => {fetchArgument()}, [fetchArgument]);
+
+  if (!argument) return null;
+  const statusClass =
+    argument.is_winning === true
+      ? 'winning'
+      : argument.is_winning === false
+      ? 'losing'
+      : 'undecided';
+  const statusLabel =
+    argument.is_winning === true
+      ? 'Winning'
+      : argument.is_winning === false
+      ? 'Losing'
+      : 'Undecided';
 
   return (
     <div className="argument-page">
@@ -179,8 +192,8 @@ const ArgumentPage = () => {
                 <div className="argument-top">
                   <span className="arg-scheme-label">{argument.scheme_name}</span>
                   <span className="arg-theme-label">{argument.theme}</span>
-                  <span className={`arg-winning-label ${argument.is_winning ? 'winning' : 'losing'}`}>
-                    {argument.is_winning ? 'Winning' : 'Losing'}
+                  <span className={`arg-winning-label ${statusClass}`}>
+                    {statusLabel}
                   </span>
                   <button className={`btn-report ${reported ? 'reported' : ''}`} onClick={toggleReport}>
                     {reported ? 'Unreport' : 'Report'} ({reportCount})

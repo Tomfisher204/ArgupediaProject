@@ -5,7 +5,6 @@ class Command(BaseCommand):
     help = 'Remove seeded data from the database'
     
     def handle(self, *args, **options):
-        # Delete in reverse dependency order
         ArgumentLink.objects.all().delete()
         ArgumentFieldValue.objects.all().delete()
         CriticalQuestion.objects.all().delete()
@@ -13,4 +12,4 @@ class Command(BaseCommand):
         SchemeField.objects.all().delete()
         ArgumentScheme.objects.all().delete()
         ArgumentTheme.objects.all().delete()
-        #User.objects.all().delete()
+        User.objects.all().delete()

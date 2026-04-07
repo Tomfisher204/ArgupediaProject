@@ -1,57 +1,75 @@
 """
-The formula for determining whether an argument is winning or losing is as follows:
+The formula for determining whether an argument is winning, losing,
+or undecided is as follows:
 
-An argument is winning iff:
-    (WS + LA/2) > (WA + LS/2) + ALPHA * TotalArgs
+Let:
+WS = count of winning supporters
+LA = count of losing attackers
+WA = count of winning attackers
+LS = count of losing supporters
 
-Where:
-    WS = count of winning supporters (child links with attacking=False, is_winning=True)
-    LA = count of losing attackers (child links with attacking=True,  is_winning=False)
-    WA = count of winning attackers (child links with attacking=True,  is_winning=True)
-    LS = count of losing  supporters (child links with attacking=False, is_winning=False)
-    TotalArgs = WS + LA + WA + LS  (total direct children)
-    ALPHA = dampening constant so TotalArgs does not dominate the RHS
+TotalArgs = WS + LA + WA + LS
+ALPHA = constant
 
-An argument with no children defaults to winning (nothing is attacking it).
+Scores:
+LHS = WS + LA/2
+RHS = WA + LS/2
+
+Decision rule:
+Winning if LHS > RHS + ALPHA * TotalArgs
+Losing if RHS > LHS + ALPHA * TotalArgs
+Otherwise undecided (None)
+
+An argument with no decisive children defaults to winning.
 """
 
 from backend.models import Argument
 
 ALPHA = 0.1
 
-def _compute_is_winning(argument) -> bool:
-    children = (
-        argument.child_links
-        .select_related('child_argument')
-        .only('attacking', 'child_argument__is_winning')
-    )
+def _compute_is_winning(argument) -> bool | None:
+    children = (argument.child_links.select_related("child_argument").only("attacking", "child_argument__is_winning"))
+    
     ws = la = wa = ls = 0
+
     for link in children:
-        child_winning = link.child_argument.is_winning
+        child_state = link.child_argument.is_winning
+        if child_state is None:
+            continue
         if link.attacking:
-            if child_winning:
+            if child_state:
                 wa += 1
             else:
                 la += 1
         else:
-            if child_winning:
+            if child_state:
                 ws += 1
             else:
                 ls += 1
     total_args = ws + la + wa + ls
+
     if total_args == 0:
         return True
+
     lhs = ws + la / 2
-    rhs = wa + ls / 2 + ALPHA * total_args
-    return lhs > rhs
+    rhs = wa + ls / 2
+    margin = ALPHA * total_args
+
+    if lhs > rhs + margin:
+        return True
+
+    if rhs > lhs + margin:
+        return False
+
+    return None
 
 
 def _evaluate_single(argument) -> bool:
-    new_winning = _compute_is_winning(argument)
-    if new_winning == argument.is_winning:
+    new_state = _compute_is_winning(argument)
+    if new_state == argument.is_winning:
         return False
-    argument.is_winning = new_winning
-    argument.save(update_fields=['is_winning'])
+    argument.is_winning = new_state
+    argument.save(update_fields=["is_winning"])
     return True
 
 

@@ -8,7 +8,7 @@ class Argument(models.Model):
     scheme = models.ForeignKey(ArgumentScheme, on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
     reported_by = models.ManyToManyField(User, related_name='reported_arguments', blank=True)
-    is_winning = models.BooleanField(default=True)
+    is_winning = models.BooleanField(null=True, blank=True, default=None)
     root = models.BooleanField(default=False)
 
 class ArgumentFieldValue(models.Model):

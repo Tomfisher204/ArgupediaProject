@@ -50,15 +50,15 @@ class ArgumentDetailView(APIView):
 
 class CreateArgumentView(APIView):
     """
-    POST /api/arguments/
+    POST /api/arguments/create/
     """
     permission_classes = [IsAuthenticated]
     def post(self, request):
         data = request.data.copy()
         if not data.get("parent_argument_id"):
-            data["root"] = True
+            data["root"] = True        
         serializer = CreateArgumentSerializer(
-            data=request.data,
+            data=data,
             context={'request': request},
         )
         if not serializer.is_valid():

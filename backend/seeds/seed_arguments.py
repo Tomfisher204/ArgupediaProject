@@ -1,6 +1,7 @@
 import random
 from faker import Faker
 from backend.models import Argument, ArgumentFieldValue, ArgumentLink, ArgumentTheme, ArgumentScheme, CriticalQuestion, User
+from backend.utils import evaluate_and_propagate
 
 faker = Faker("en_GB")
 
@@ -12,6 +13,7 @@ def seed_arguments(test=False):
     cq_map = build_cq_map()
     for theme in themes:
         seed_theme_trees(theme, cq_map)
+    evaluate_arguments()
     print("Argument seeding complete.")
 
 def seed_theme_trees(theme, cq_map):
@@ -99,3 +101,7 @@ def resolve_user(user):
     if isinstance(user, User):
         return user
     return User.deleted_user()
+
+def evaluate_arguments():
+    for argument in Argument.objects.all():
+        evaluate_and_propagate(argument)

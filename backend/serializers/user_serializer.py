@@ -6,35 +6,26 @@ User = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
     """Validates and creates a new user from the signup form."""
-
     password = serializers.CharField(write_only=True, min_length=8)
-
     class Meta:
         model = User
-        fields = ('username', 'email', 'password')
-
+        fields = ('username', 'email', 'password', 'first_name', 'last_name')
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError("A user with that username already exists.")
         return value
-
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("A user with that email already exists.")
         return value
-
     def create(self, validated_data):
-        # Use create_user so the password is hashed properly
         return User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password'],
-            # first_name and last_name are required on your model but not on the
-            # signup form — defaulting to empty string; add them to the form later if needed
-            first_name='',
-            last_name='',
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
         )
-
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializes the current user for the /api/auth/me/ endpoint.
@@ -64,10 +55,18 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.argument_set.count()
 
     def get_reputation(self, obj):
-        # Simple reputation calculation - could be made more complex
-        return obj.argument_set.count() * 10  # 10 points per argument
+        prior = 0.5
+        weight = 5
+        objects = obj.argument_set
+        total = objects.count()
+        winning = objects.filter(is_winning=True).count()
+        if total == 0:
+            return prior * 10
+        score = (winning + prior * weight) / (total + weight)
+        return round(score * 10, 0)
 
     def get_win_rate(self, obj):
-        # For now, return None - this would need more complex logic
-        # to determine "wins" based on argument links/attacks
-        return None
+        objects = obj.argument_set
+        winning = objects.filter(is_winning=True)
+        win_rate = (winning.count() / objects.count()) * 100 if objects.count() > 0 else 0
+        return round(win_rate, 2)

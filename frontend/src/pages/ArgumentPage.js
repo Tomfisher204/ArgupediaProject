@@ -299,7 +299,21 @@ const ArgumentPage = () => {
       {showConfirm && (
         <ConfirmDialog
           message="Are you sure you want to delete this argument?"
-          onConfirm={ConfirmDialog.Action.DELETE}
+          onConfirm={async () => {
+            try {
+              const token = await getValidAccessToken();
+              const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (!res.ok) throw new Error('Failed to delete argument.');
+              setShowConfirm(false);
+              navigate('/dashboard');
+            } 
+            catch (err) {
+              setError(err.message);
+            }
+          }}
           onCancel={() => setShowConfirm(false)}
         />
       )}

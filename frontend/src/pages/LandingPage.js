@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import '../css/pages/LandingPage.css';
 
 const FEATURES = [
-  {title: 'Structured arguments', desc: 'Arguments follow an argumentation scheme of your choice. Premises, conclusions, evidence — all clearly defined.'},
+  {title: 'Structured arguments', desc: 'Arguments follow an argumentation scheme of your choice. Premises, conclusions, evidence all clearly defined.'},
   {title: 'Limited Bias', desc: 'Critical questions force you to counter the argument not just disagree with it.'},
   {title: 'Quality over Quantity', desc: 'Focus on building strong, well-reasoned arguments rather than numerous weak ones.'},
 ];
@@ -12,7 +12,7 @@ const FEATURES = [
 const LandingPage = () => {
   const {user, loading, error, login, signup} = useAuth();
   const [mode, setMode] = useState('login');
-  const [form, setForm] = useState({ username: '', email: '', password: '' });
+  const [form, setForm] = useState({ username: '', email: '', password: '', first_name: '', last_name: '' });
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState(null);
 
@@ -32,7 +32,7 @@ const LandingPage = () => {
       if (mode === 'login') {
         await login(form.username, form.password);
       } else {
-        await signup(form.username, form.email, form.password);
+        await signup(form.username, form.email, form.password, form.first_name, form.last_name);
       }
     } 
     catch (err) {
@@ -46,7 +46,7 @@ const LandingPage = () => {
   const switchMode = (next) => {
     setMode(next);
     setFormError(null);
-    setForm({ username: '', email: '', password: '' });
+    setForm({ username: '', email: '', password: '' , first_name: '', last_name: ''});
   };
 
   return (
@@ -61,7 +61,7 @@ const LandingPage = () => {
             Argumentation done right.
           </h1>
           <p className="landing-sub">
-            A structured debate platform. Build a case, face the counter, let the best reasoning win.
+            A structured debate platform that uses schemes and critical questions to promote high-quality arguments.
           </p>
           <div className="feature-cards">
             {FEATURES.map((f) => (
@@ -109,6 +109,36 @@ const LandingPage = () => {
                   value={form.email}
                   onChange={handleChange}
                   autoComplete="email"
+                  required
+                />
+              </div>
+            )}
+            {mode === 'signup' && (
+              <div className="field">
+                <label className="field-label" htmlFor="first_name">First Name</label>
+                <input
+                  id="first_name"
+                  name="first_name"
+                  type="text"
+                  className="field-input"
+                  value={form.first_name}
+                  onChange={handleChange}
+                  autoComplete="given-name"
+                  required
+                />
+              </div>
+            )}
+            {mode === 'signup' && (
+              <div className="field">
+                <label className="field-label" htmlFor="last_name">Last Name</label>
+                <input
+                  id="last_name"
+                  name="last_name"
+                  type="text"
+                  className="field-input"
+                  value={form.last_name}
+                  onChange={handleChange}
+                  autoComplete="family-name"
                   required
                 />
               </div>

@@ -83,6 +83,7 @@ def try_create_user(data):
         email=data["email"],
         first_name=data["first_name"],
         last_name=data["last_name"],
+        is_admin=data.get("is_admin", False),
     )
     user.set_password(DEFAULT_PASSWORD)
     user.save()

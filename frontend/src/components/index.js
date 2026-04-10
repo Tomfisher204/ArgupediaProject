@@ -1,6 +1,6 @@
 export { default as Navbar } from './Navbar';
-export { default as AddArgumentModal } from './AddArgumentModal';
-export { default as ThemeRequestModal } from './ThemeRequestModal';
+export { default as AddArgumentForm } from './AddArgumentForm';
+export { default as ThemeRequestForm } from './ThemeRequestForm';
 export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as TrashIcon } from './TrashIcon';
 export { default as AddSchemeForm } from './AddSchemeForm';

@@ -29,9 +29,7 @@ ALPHA = 0.1
 
 def _compute_is_winning(argument) -> bool | None:
     children = (argument.child_links.select_related("child_argument").only("attacking", "child_argument__is_winning"))
-    
     ws = la = wa = ls = 0
-
     for link in children:
         child_state = link.child_argument.is_winning
         if child_state is None:
@@ -47,20 +45,15 @@ def _compute_is_winning(argument) -> bool | None:
             else:
                 ls += 1
     total_args = ws + la + wa + ls
-
     if total_args == 0:
         return True
-
     lhs = ws + la / 2
     rhs = wa + ls / 2
     margin = ALPHA * total_args
-
     if lhs > rhs + margin:
         return True
-
     if rhs > lhs + margin:
         return False
-
     return None
 
 

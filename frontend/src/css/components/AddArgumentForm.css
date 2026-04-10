@@ -1,4 +1,4 @@
-.modal-backdrop {
+.form-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
@@ -9,7 +9,7 @@
   padding: 24px;
 }
 
-.modal {
+.form {
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -21,7 +21,7 @@
   overflow: hidden;
 }
 
-.modal-header {
+.form-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -30,7 +30,7 @@
   flex-shrink: 0;
 }
 
-.modal-title {
+.form-title {
   font-family: var(--font-display);
   font-size: 18px;
   font-weight: 500;
@@ -38,7 +38,7 @@
   color: var(--color-ink);
 }
 
-.modal-close {
+.form-close {
   background: none;
   border: none;
   font-size: 16px;
@@ -49,12 +49,12 @@
   transition: background 0.12s;
 }
 
-.modal-close:hover {
+.form-close:hover {
   background: var(--color-border);
   color: var(--color-ink);
 }
 
-.modal-body {
+.form-body {
   padding: 20px 24px;
   overflow-y: auto;
   flex: 1;
@@ -244,7 +244,7 @@
   padding: 9px 12px;
 }
 
-.modal-footer {
+.form-footer {
   padding: 16px 24px;
   border-top: 1px solid var(--color-border);
   display: flex;

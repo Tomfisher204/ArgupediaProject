@@ -3,10 +3,16 @@ from .seed_themes import seed_argument_themes
 from .seed_schemes import seed_argument_schemes
 from .seed_arguments import seed_arguments
 from .seed_critical_questions import seed_critical_questions
+from .seed_argument_fixtures import seed_argument_fixtures
+from .seed_reports import seed_reports
+from .seed_theme_requests import seed_theme_requests
 
 def seed_all(test=False):
     seed_users(test=test)
     seed_argument_themes(test=test)
     seed_argument_schemes(test=test)
     seed_critical_questions(test=test)
+    seed_argument_fixtures(test=test)
     seed_arguments(test=test)
+    seed_reports(test=test)
+    seed_theme_requests(test=test)

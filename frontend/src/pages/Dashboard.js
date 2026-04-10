@@ -14,7 +14,7 @@ const buildPreview = (template, fieldValues) => {
 
 const STAT_FIELDS = [
   { label: 'Arguments made', key: 'argument_count' },
-  { label: 'Reputation', key: 'reputation' },
+  { label: 'Reputation', key: 'reputation' , format: (v) => (v != null ? `${v}/10` : null)},
   { label: 'Win rate', key: 'win_rate', format: (v) => (v != null ? `${v}%` : null) },
 ];
 

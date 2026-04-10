@@ -12,6 +12,7 @@ def generate_cq_fixtures():
             ("Does action A really achieve goal G?", True),
             ("Could action A have negative consequences contrary to value V?", False),
             ("Is scenario S correctly represented?", False),
+            ("Does action A conflict with other goals?", False),
         ],
         "Expert Opinion": [
             ("Is expert E truly credible in domain S?", True),

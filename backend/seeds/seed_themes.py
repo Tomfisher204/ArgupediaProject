@@ -32,12 +32,12 @@ def generate_theme_fixtures():
         {
             "title": "Lockdown",
             "description": "Arguments related to lockdown policies and their impacts.",
-            "creator": users[0] if len(users) > 0 else deleted,
+            "creator": users[1] if len(users) > 1 else deleted,
         },
         {
             "title": "Education",
             "description": "Arguments related to education policies and debates.",
-            "creator": users[1] if len(users) > 1 else deleted,
+            "creator": users[2] if len(users) > 2 else deleted,
         },
     ]
     for data in theme_fixtures:

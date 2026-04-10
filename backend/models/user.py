@@ -34,11 +34,7 @@ class User(AbstractUser):
         """Returns a deleted user instance"""
         user, _ = cls.objects.get_or_create(
             username="deleted_user",
-            defaults={
-                'first_name': 'Deleted',
-                'last_name': 'User',
-                'email': 'deleted@example.com'
-            }
+            defaults={'first_name': 'Deleted', 'last_name': 'User', 'email': 'deleted@example.com'}
         )
         return user.id
 

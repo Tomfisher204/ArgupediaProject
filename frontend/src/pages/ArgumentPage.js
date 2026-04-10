@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
-import {AddArgumentModal, Navbar, ConfirmDialog, TrashIcon} from '../components';
+import {AddArgumentForm, Navbar, ConfirmDialog, TrashIcon} from '../components';
 import '../css/pages/ArgumentPage.css';
 
 const buildPreview = (template, fieldValues) => {
@@ -51,7 +51,7 @@ const ArgumentPage = () => {
   const [argument, setArgument] = useState(null);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [reported, setReported] = useState(false);
   const [reportCount, setReportCount] = useState(0);
@@ -229,7 +229,7 @@ const ArgumentPage = () => {
               </div>
 
               <div className="add-response-section">
-                <button className="btn-new" onClick={() => setShowModal(true)}>Add Response</button>
+                <button className="btn-new" onClick={() => setShowForm(true)}>Add Response</button>
               </div>
 
               {(argument.attackers.length > 0 || argument.supporters.length > 0) ? (
@@ -284,14 +284,14 @@ const ArgumentPage = () => {
         </div>
       </main>
 
-      {showModal && argument && (
-        <AddArgumentModal
+      {showForm && argument && (
+        <AddArgumentForm
           themeId={argument.theme_id}
           parentSchemeId={argument.scheme_id}
           parentArgumentId={parseInt(currentArgumentId)}
-          onClose={() => setShowModal(false)}
+          onClose={() => setShowForm(false)}
           onSuccess={(newArgId) => {
-            setShowModal(false);
+            setShowForm(false);
             fetchArgument();
           }}
         />

@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {useAuth} from '../context/AuthContext';
-import '../css/components/AddArgumentModal.css';
+import '../css/components/AddArgumentForm.css';
 
 const API = 'http://localhost:8000';
 
@@ -22,7 +22,7 @@ const formatPreview = (preview) => {
   });
 };
 
-const AddArgumentModal = ({themeId, parentArgumentId = null, parentSchemeId = null, attackingDefault = true, onClose, onSuccess,}) => {
+const AddArgumentForm = ({themeId, parentArgumentId = null, parentSchemeId = null, attackingDefault = true, onClose, onSuccess,}) => {
   const { getValidAccessToken } = useAuth();
   const [schemes, setSchemes] = useState([]);
   const [parentCQs, setParentCQs] = useState([]);
@@ -49,7 +49,7 @@ const AddArgumentModal = ({themeId, parentArgumentId = null, parentSchemeId = nu
         } 
       } 
       catch (err) {
-        console.error('[AddArgumentModal] error loading schemes:', err);
+        console.error('[AddArgumentForm] error loading schemes:', err);
         setError(err.message);
       } 
       finally {
@@ -116,15 +116,15 @@ const AddArgumentModal = ({themeId, parentArgumentId = null, parentSchemeId = nu
     : null;
 
   return (
-    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal">
-        <div className="modal-header">
-          <h2 className="modal-title">
+    <div className="form-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="form">
+        <div className="form-header">
+          <h2 className="form-title">
             {isResponse ? (attacking ? 'Add attack' : 'Add support') : 'Add initial argument'}
           </h2>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="form-close" onClick={onClose}>✕</button>
         </div>
-        <div className="modal-body">
+        <div className="form-body">
           {isResponse && (
             <div className="form-field">
               <label className="form-label">Critical question</label>
@@ -214,7 +214,7 @@ const AddArgumentModal = ({themeId, parentArgumentId = null, parentSchemeId = nu
           {error && <p className="form-error">{error}</p>}
         </div>
 
-        <div className="modal-footer">
+        <div className="form-footer">
           <button className="btn-ghost" onClick={onClose} disabled={submitting}>Cancel</button>
           <button className={`btn-submit ${attacking && isResponse ? 'attacking' : 'supporting'}`} onClick={handleSubmit} disabled={submitting || !selectedScheme || (isResponse && !selectedCQ)}>
             {submitting ? 'Submitting…' : 'Submit argument'}
@@ -226,4 +226,4 @@ const AddArgumentModal = ({themeId, parentArgumentId = null, parentSchemeId = nu
   );
 };
 
-export default AddArgumentModal;
+export default AddArgumentForm;

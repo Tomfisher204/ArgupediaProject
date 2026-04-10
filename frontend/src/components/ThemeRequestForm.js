@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import {useAuth} from '../context/AuthContext';
-import '../css/components/ThemeRequestModal.css';
+import '../css/components/ThemeRequestForm.css';
 
 const API = 'http://localhost:8000';
 
-const ThemeRequestModal = ({ onClose, onSuccess }) => {
+const ThemeRequestForm = ({ onClose, onSuccess }) => {
   const { getValidAccessToken } = useAuth();
   const [form, setForm] = useState({ title: '', description: '', reason: '' });
   const [submitting, setSubmit] = useState(false);
@@ -40,15 +40,15 @@ const ThemeRequestModal = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal modal-sm">
+    <div className="form-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="form form-sm">
 
-        <div className="modal-header">
-          <h2 className="modal-title">Request a theme</h2>
-          <button className="modal-close" onClick={onClose}>✕</button>
+        <div className="form-header">
+          <h2 className="form-title">Request a theme</h2>
+          <button className="form-close" onClick={onClose}>✕</button>
         </div>
 
-        <div className="modal-body">
+        <div className="form-body">
           <p className="request-intro">
             Don't see a theme that fits your argument? Request one — admins will review it.
           </p>
@@ -95,7 +95,7 @@ const ThemeRequestModal = ({ onClose, onSuccess }) => {
           {error && <p className="form-error">{error}</p>}
         </div>
 
-        <div className="modal-footer">
+        <div className="form-footer">
           <button className="btn-ghost" onClick={onClose} disabled={submitting}>Cancel</button>
           <button className="btn-submit supporting" onClick={handleSubmit} disabled={submitting}>
             {submitting ? 'Submitting…' : 'Submit request'}
@@ -107,4 +107,4 @@ const ThemeRequestModal = ({ onClose, onSuccess }) => {
   );
 };
 
-export default ThemeRequestModal;
+export default ThemeRequestForm;

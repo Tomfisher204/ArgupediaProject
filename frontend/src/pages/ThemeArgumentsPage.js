@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
-import { AddArgumentModal, Navbar } from '../components';
+import { AddArgumentForm, Navbar } from '../components';
 import '../css/pages/ThemeArgumentsPage.css';
 
 const buildPreview = (template, fieldValues) => {
@@ -52,7 +52,7 @@ const ThemeArgumentsPage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   const fetchArguments = useCallback(async (page = 1) => {
     try {
@@ -90,7 +90,7 @@ const ThemeArgumentsPage = () => {
                   <p className="page-sub">{data.theme.description}</p>
                 )}
                 <div className="initial-argument-section">
-                  <button className="btn-new" onClick={() => setShowModal(true)}>Add Initial Argument</button>
+                  <button className="btn-new" onClick={() => setShowForm(true)}>Add Initial Argument</button>
                 </div>
               </div>
 
@@ -106,13 +106,13 @@ const ThemeArgumentsPage = () => {
         </div>
       </main>
 
-      {showModal && (
-        <AddArgumentModal
+      {showForm && (
+        <AddArgumentForm
           themeId={parseInt(themeId)}
           parentArgumentId={null}
-          onClose={() => setShowModal(false)}
+          onClose={() => setShowForm(false)}
           onSuccess={(newArgId) => {
-            setShowModal(false);
+            setShowForm(false);
             fetchArguments();
           }}
         />

@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
-import { ThemeRequestModal, Navbar, ConfirmDialog, TrashIcon } from '../components';
+import { ThemeRequestForm, Navbar, ConfirmDialog, TrashIcon } from '../components';
 import '../css/pages/ThemesPage.css';
 
 const ThemesPage = () => {
@@ -11,7 +11,7 @@ const ThemesPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmThemeId, setConfirmThemeId] = useState(null);
   const [search, setSearch] = useState('');
@@ -100,7 +100,7 @@ const ThemesPage = () => {
           </div>
 
           <div className="theme-request-section">
-            <button className="btn-new" onClick={() => setShowModal(true)}>Request a Theme</button>
+            <button className="btn-new" onClick={() => setShowForm(true)}>Request a Theme</button>
           </div>
 
           {loading && <p className="state-msg">Loading themes…</p>}
@@ -150,11 +150,11 @@ const ThemesPage = () => {
         </div>
       </main>
 
-      {showModal && (
-        <ThemeRequestModal
-          onClose={() => setShowModal(false)}
+      {showForm && (
+        <ThemeRequestForm
+          onClose={() => setShowForm(false)}
           onSuccess={(newArgId) => {
-            setShowModal(false);
+            setShowForm(false);
             fetchThemes();
           }}
         />

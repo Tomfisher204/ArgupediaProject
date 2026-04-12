@@ -15,9 +15,7 @@ class ArgumentLink(models.Model):
     def save(self, *args, **kwargs):
         creating = self._state.adding
         reciprocal_mode = getattr(self._thread_local, "creating_two_way", False)
-
         super().save(*args, **kwargs)
-
         if creating and not reciprocal_mode and self.critical_question.two_way:
             reciprocal = ArgumentLink.objects.filter(
                 parent_argument=self.child_argument,
@@ -25,7 +23,6 @@ class ArgumentLink(models.Model):
                 critical_question=self.critical_question,
                 attacking=self.attacking,
             ).exists()
-            
             if not reciprocal:
                 try:
                     self._thread_local.creating_two_way = True

@@ -5,10 +5,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from backend.serializers import RegisterSerializer, UserSerializer
 
 class RegisterView(APIView):
-    """
-    POST /api/register/
-    """
+    """Register a new user account."""
     permission_classes = [AllowAny]
+
     def post(self, request):
         print("Registering user with data:", request.data)
         serializer = RegisterSerializer(data=request.data)
@@ -21,10 +20,9 @@ class RegisterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class MeView(APIView):
-    """
-    GET /api/me/
-    """
+    """Returns the current authenticated user's information."""
     permission_classes = [IsAuthenticated]
+    
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)

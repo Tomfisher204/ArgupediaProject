@@ -9,11 +9,9 @@ from backend.serializers import ArgumentSummarySerializer, ArgumentDetailSeriali
 from backend.utils import evaluate_and_propagate
 
 class ArgumentDetailView(APIView):
-    """
-    GET /api/arguments/<argument_id>/
-    DELETE /api/arguments/<argument_id>/
-    """
+    """Returns detailed information about an argument, including its children and critical questions. Also allows admins to delete arguments."""
     permission_classes = [IsAuthenticated]
+
     def get(self, request, argument_id):
         argument = get_object_or_404(
             Argument.objects
@@ -30,12 +28,10 @@ class ArgumentDetailView(APIView):
         )
         serializer = ArgumentDetailSerializer(argument)
         return Response(serializer.data)
+
     def delete(self, request, argument_id):
         if not request.user.is_admin:
-            return Response(
-                {'error': 'Permission denied'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         argument = get_object_or_404(Argument, id=argument_id)
         parents = list(
             Argument.objects
@@ -45,14 +41,12 @@ class ArgumentDetailView(APIView):
         argument.delete()
         for parent in parents:
             evaluate_and_propagate(parent)
-
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class CreateArgumentView(APIView):
-    """
-    POST /api/arguments/create/
-    """
+    """Creates a new argument and evaluates its parents to update their winning status if necessary."""
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
         data = request.data.copy()
         if not data.get("parent_argument_id"):
@@ -74,10 +68,9 @@ class CreateArgumentView(APIView):
         return Response({'id': argument.id}, status=status.HTTP_201_CREATED)
 
 class UserArgumentsView(APIView):
-    """
-    GET /api/user/arguments/
-    """
+    """Returns a paginated list of arguments created by the authenticated user, including summary information about each argument."""
     permission_classes = [IsAuthenticated]
+
     def get(self, request):
         arguments = (
             Argument.objects
@@ -93,9 +86,7 @@ class UserArgumentsView(APIView):
         return paginator.get_paginated_response(serializer.data)
 
 class ReportArgumentView(APIView):
-    """
-    POST /api/arguments/<argument_id>/report/
-    """
+    """Allows users to toggle report on an argument."""
     permission_classes = [IsAuthenticated]
     def post(self, request, argument_id):
         argument = get_object_or_404(Argument, id=argument_id)

@@ -14,7 +14,6 @@ class SchemeField(models.Model):
     scheme = models.ForeignKey(ArgumentScheme, related_name="fields", on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     order = models.PositiveIntegerField(default=0)
- 
     class Meta:
         ordering = ['order', 'id']
  

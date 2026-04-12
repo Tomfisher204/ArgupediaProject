@@ -2,8 +2,8 @@ from rest_framework import serializers
 from backend.models import ArgumentTheme, Argument
 
 class ThemeSerializer(serializers.ModelSerializer):
+    """Serializes argument themes."""
     argument_count = serializers.SerializerMethodField()
-
     class Meta:
         model = ArgumentTheme
         fields = ('id', 'title', 'description', 'date_created', 'argument_count')

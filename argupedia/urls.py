@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-
 from backend.views import SchemeListView, CreateArgumentView, ThemeRequestView, ThemeListView, ThemeArgumentsView, ArgumentDetailView, RegisterView, MeView, UserArgumentsView, AdminStatsView, AdminThemeRequestsView, AdminThemeView, ReportArgumentView, AdminReportedArgumentsView, AdminSchemesView, AdminCriticalQuestionsView
 
 urlpatterns = [

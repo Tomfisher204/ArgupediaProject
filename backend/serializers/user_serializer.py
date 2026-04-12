@@ -10,14 +10,17 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email', 'password', 'first_name', 'last_name')
+
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError("A user with that username already exists.")
         return value
+
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("A user with that email already exists.")
         return value
+        
     def create(self, validated_data):
         return User.objects.create_user(
             username=validated_data['username'],
@@ -28,27 +31,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
 class UserSerializer(serializers.ModelSerializer):
-    """Serializes the current user for the /api/auth/me/ endpoint.
-    This is what gets loaded into AuthContext as `user`."""
-
+    """Serializes user data for profile views, including computed fields like reputation and win rate."""
     argument_count = serializers.SerializerMethodField()
     reputation = serializers.SerializerMethodField()
     win_rate = serializers.SerializerMethodField()
-
     class Meta:
         model = User
-        fields = (
-            'id',
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'date_joined',
-            'is_admin',
-            'argument_count',
-            'reputation',
-            'win_rate',
-        )
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'date_joined', 'is_admin', 'argument_count', 'reputation', 'win_rate')
         read_only_fields = fields
 
     def get_argument_count(self, obj):

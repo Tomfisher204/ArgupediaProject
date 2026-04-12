@@ -6,10 +6,9 @@ from backend.serializers.scheme_serializer import ArgumentSchemeSerializer
 
 
 class SchemeListView(APIView):
-    """ 
-    GET /api/schemes/
-    """
+    """Gets a list of all argument schemes, including their fields and critical questions."""
     permission_classes = [IsAuthenticated]
+    
     def get(self, request):
         schemes = (
             ArgumentScheme.objects

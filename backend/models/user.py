@@ -37,7 +37,6 @@ class User(AbstractUser):
             defaults={'first_name': 'Deleted', 'last_name': 'User', 'email': 'deleted@example.com'}
         )
         return user.id
-
     def clean(self):
         """Custom validation for the password field using Django's validators."""
         super().clean()

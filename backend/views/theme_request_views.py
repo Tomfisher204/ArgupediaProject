@@ -5,10 +5,9 @@ from rest_framework import status
 from backend.serializers import ThemeRequestSerializer
 
 class ThemeRequestView(APIView):
-    """
-    POST /api/theme-requests/
-    """
+    """Posts user requests to add new themes, which admins can later review and approve or reject."""
     permission_classes = [IsAuthenticated]
+    
     def post(self, request):
         serializer = ThemeRequestSerializer(
             data=request.data,

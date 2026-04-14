@@ -4,6 +4,8 @@ import {useAuth} from '../context';
 import {AddArgumentForm, Navbar} from '../components';
 import '../css/pages/ThemeArgumentsPage.css';
 
+const API = process.env.REACT_APP_API_URL;
+
 const buildPreview = (template, fieldValues) => {
   if (!template) return null;
   return template.replace(/\*\*([^*]+)\*\*/g, (_, key) => {
@@ -48,9 +50,7 @@ const ThemeArgumentsPage = () => {
     try {
       setLoading(true);
       const token = await getValidAccessToken();
-      const res = await fetch(`http://localhost:8000/api/themes/${themeId}/arguments/`, {
-        headers: {Authorization: `Bearer ${token}`},
-      });
+      const res = await fetch(`${API}/api/themes/${themeId}/arguments/`, {headers: {Authorization: `Bearer ${token}`}});
       if (!res.ok) throw new Error('Failed to load arguments.');
       setData(await res.json());
       setError(null);

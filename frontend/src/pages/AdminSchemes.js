@@ -2,6 +2,8 @@ import React, {useState, useEffect} from 'react';
 import {Navbar, ConfirmDialog, TrashIcon, AddSchemeForm, AddCriticalQuestionForm} from '../components';
 import '../css/pages/AdminSchemes.css';
 
+const API = process.env.REACT_APP_API_URL;
+
 const AdminSchemes = () => {
   const [schemes, setSchemes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,7 +15,7 @@ const AdminSchemes = () => {
 
   const fetchSchemes = async () => {
     const token = localStorage.getItem('access_token');
-    const res = await fetch('http://localhost:8000/api/admin/schemes/', {
+    const res = await fetch(`${API}/api/admin/schemes/`, {
       headers: {Authorization: `Bearer ${token}`},
     });
     if (res.ok) {
@@ -29,7 +31,7 @@ const AdminSchemes = () => {
       message: 'Are you sure you want to delete this scheme?',
       onConfirm: async () => {
         const token = localStorage.getItem('access_token');
-        const res = await fetch(`http://localhost:8000/api/admin/schemes/${schemeId}/`, {
+        const res = await fetch(`${API}/api/admin/schemes/${schemeId}/`, {
           method: 'DELETE',
           headers: {Authorization: `Bearer ${token}`},
         });
@@ -47,7 +49,7 @@ const AdminSchemes = () => {
       message: 'Are you sure you want to delete this critical question?',
       onConfirm: async () => {
         const token = localStorage.getItem('access_token');
-        const res = await fetch(`http://localhost:8000/api/admin/critical-questions/${cqId}/`, {
+        const res = await fetch(`${API}/api/admin/critical-questions/${cqId}/`, {
           method: 'DELETE',
           headers: {Authorization: `Bearer ${token}`},
         });

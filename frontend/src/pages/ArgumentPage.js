@@ -4,6 +4,8 @@ import {useAuth} from '../context';
 import {AddArgumentForm, Navbar, ConfirmDialog, TrashIcon} from '../components';
 import '../css/pages/ArgumentPage.css';
 
+const API = process.env.REACT_APP_API_URL;
+
 const buildPreview = (template, fieldValues) => {
   if (!template) return null;
   return template.replace(/\*\*([^*]+)\*\*/g, (_, key) => {
@@ -99,7 +101,7 @@ const ArgumentPage = () => {
     try {
       setLoading(true);
       const token = await getValidAccessToken();
-      const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/`, {headers: {Authorization: `Bearer ${token}`}});
+      const res = await fetch(`${API}/api/arguments/${currentArgumentId}/`, {headers: {Authorization: `Bearer ${token}`}});
       if (!res.ok) throw new Error('Failed to load argument.');
       const data = await res.json();
       setArgument(data);
@@ -120,7 +122,7 @@ const ArgumentPage = () => {
   const toggleReport = async () => {
     try {
       const token = await getValidAccessToken();
-      const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/report/`, {method: 'POST', headers: {Authorization: `Bearer ${token}`}});
+      const res = await fetch(`${API}/api/arguments/${currentArgumentId}/report/`, {method: 'POST', headers: {Authorization: `Bearer ${token}`}});
       if (res.ok) {
         const data = await res.json();
         setReported(data.reported);
@@ -284,7 +286,7 @@ const ArgumentPage = () => {
           onConfirm={async () => {
             try {
               const token = await getValidAccessToken();
-              const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/`, {method: 'DELETE', headers: {Authorization: `Bearer ${token}`}});
+              const res = await fetch(`${API}/api/arguments/${currentArgumentId}/`, {method: 'DELETE', headers: {Authorization: `Bearer ${token}`}});
               if (!res.ok) throw new Error('Failed to delete argument.');
               setShowConfirm(false);
               navigate('/dashboard');

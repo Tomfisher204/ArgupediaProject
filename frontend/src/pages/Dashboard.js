@@ -4,6 +4,8 @@ import {useAuth} from '../context';
 import {Navbar} from '../components';
 import '../css/pages/Dashboard.css';
 
+const API = process.env.REACT_APP_API_URL;
+
 const buildPreview = (template, fieldValues) => {
   if (!template) return null;
   return template.replace(/\*\*([^*]+)\*\*/g, (_, key) => {
@@ -34,7 +36,7 @@ const Dashboard = () => {
     try {
       setArgumentsLoading(true);
       const token = await getValidAccessToken();
-      const response = await fetch(`http://localhost:8000/api/user/arguments/?page=${page}`, {headers: {Authorization: `Bearer ${token}`}});
+      const response = await fetch(`${API}/api/user/arguments/?page=${page}`, {headers: {Authorization: `Bearer ${token}`}});
       if (response.ok) {
         const data = await response.json();
         setUserArguments(data.results);

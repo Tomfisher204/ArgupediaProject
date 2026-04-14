@@ -4,6 +4,8 @@ import {useAuth} from '../context';
 import {ThemeRequestForm, Navbar, ConfirmDialog, TrashIcon} from '../components';
 import '../css/pages/ThemesPage.css';
 
+const API = process.env.REACT_APP_API_URL;
+
 const ThemesPage = () => {
   const {getValidAccessToken, user} = useAuth();
   const navigate = useNavigate();
@@ -21,7 +23,7 @@ const ThemesPage = () => {
     try {
       setLoading(true);
       const token = await getValidAccessToken();
-      let url = `http://localhost:8000/api/themes/?page=${page}`;
+      let url = `${API}/api/themes/?page=${page}`;
       if (query) url += `&q=${encodeURIComponent(query)}`;
       if (sortBy) url += `&sort=${encodeURIComponent(sortBy)}`;
       const res = await fetch(url, {headers: {Authorization: `Bearer ${token}`}});
@@ -51,7 +53,7 @@ const ThemesPage = () => {
     setShowConfirm(false);
     try {
       const token = await getValidAccessToken();
-      const res = await fetch(`http://localhost:8000/api/admin/theme/${confirmThemeId}/`, {method: 'DELETE', headers: {Authorization: `Bearer ${token}`}});
+      const res = await fetch(`${API}/api/admin/theme/${confirmThemeId}/`, {method: 'DELETE', headers: {Authorization: `Bearer ${token}`}});
       if (res.ok) {
         fetchThemes();
       }

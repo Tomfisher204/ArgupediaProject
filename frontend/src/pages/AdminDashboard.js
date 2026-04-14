@@ -4,6 +4,8 @@ import {useAuth} from '../context/AuthContext';
 import {Navbar} from '../components';
 import '../css/pages/AdminDashboard.css';
 
+const API = process.env.REACT_APP_API_URL;
+
 const buildPreview = (template, fieldValues) => {
   if (!template) return null;
   return template.replace(/\*\*([^*]+)\*\*/g, (_, key) => {
@@ -33,7 +35,7 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     const token = await getValidAccessToken();
-    const res = await fetch('http://localhost:8000/api/admin/stats/', {headers: {Authorization: `Bearer ${token}`}});
+    const res = await fetch(`${API}/api/admin/stats/`, {headers: {Authorization: `Bearer ${token}`}});
     if (res.ok) {
       const data = await res.json();
       setStats(data);
@@ -45,7 +47,7 @@ const AdminDashboard = () => {
     try {
       setRequestsLoading(true);
       const token = await getValidAccessToken();
-      const response = await fetch(`http://localhost:8000/api/admin/theme-requests/?page=${page}`, {
+      const response = await fetch(`${API}/api/admin/theme-requests/?page=${page}`, {
         headers: {Authorization: `Bearer ${token}`},
       });
       if (response.ok) {
@@ -67,7 +69,7 @@ const AdminDashboard = () => {
     try {
       setReportedLoading(true);
       const token = await getValidAccessToken();
-      const response = await fetch(`http://localhost:8000/api/admin/reported-arguments/?page=${page}`, {
+      const response = await fetch(`${API}/api/admin/reported-arguments/?page=${page}`, {
         headers: {Authorization: `Bearer ${token}`},
       });
       if (response.ok) {
@@ -92,7 +94,7 @@ const AdminDashboard = () => {
 
   const handleApproveReject = async (requestId, action) => {
     const token = await getValidAccessToken();
-    const res = await fetch('http://localhost:8000/api/admin/theme-requests/', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: `Bearer ${token}`}, body: JSON.stringify({request_id: requestId, action})});
+    const res = await fetch(`${API}/api/admin/theme-requests/`, {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: `Bearer ${token}`}, body: JSON.stringify({request_id: requestId, action})});
     if (res.ok) {
       fetchThemeRequests(pagination?.currentPage || 1);
       fetchStats();

@@ -2,7 +2,7 @@ import React, {useEffect, useState, useCallback} from 'react';
 import {useAuth} from '../context';
 import '../css/components/AddArgumentForm.css';
 
-const API = 'http://localhost:8000';
+const API = process.env.REACT_APP_API_URL;
 
 const buildPreview = (template, fieldValues) => {
   if (!template) return null;

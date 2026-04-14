@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {useAuth} from '../context';
 import '../css/components/ThemeRequestForm.css';
 
-const API = 'http://localhost:8000';
+const API = process.env.REACT_APP_API_URL;
 
 const ThemeRequestForm = ({onClose, onSuccess}) => {
   const {getValidAccessToken} = useAuth();

@@ -33,14 +33,14 @@ const AdminDashboard = () => {
   const [reportedPagination, setReportedPagination] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     const token = await getValidAccessToken();
     const res = await fetch(`${API}/api/admin/stats/`, {headers: {Authorization: `Bearer ${token}`}});
     if (res.ok) {
       const data = await res.json();
       setStats(data);
     }
-  };
+  }, [getValidAccessToken]);
 
   const fetchThemeRequests = useCallback(async (page = 1) => {
     if (!user) return;
@@ -90,7 +90,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {fetchReportedArgs()}, [fetchReportedArgs]);
 
-  useEffect(() => {fetchStats()}, []);
+  useEffect(() => {fetchStats()}, [fetchStats]);
 
   const handleApproveReject = async (requestId, action) => {
     const token = await getValidAccessToken();
@@ -100,8 +100,6 @@ const AdminDashboard = () => {
       fetchStats();
     }
   };
-
-  const initial = user.username?.[0]?.toUpperCase() ?? '?';
 
   if (loading) return <div className="page-loading">Loading…</div>;
   if (!user) return <Navigate to="/" replace />;

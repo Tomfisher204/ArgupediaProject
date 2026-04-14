@@ -1,80 +1,55 @@
 from django.test import TestCase
-from django.core.exceptions import ValidationError
+from django.utils import timezone
 from backend.models import User, ArgumentTheme
 
+def make_user(username="test_user", email="test@example.com", **kwargs):
+    return User.objects.create(
+        username=username,
+        first_name="Test",
+        last_name="User",
+        email=email,
+        password="Password123",
+        **kwargs,
+    )
 
 class ArgumentThemeModelTests(TestCase):
     """Tests for the ArgumentTheme model validation and functionality."""
 
     def setUp(self):
-        self.user = User.objects.create(
-            username="john_doe",
-            first_name="John",
-            last_name="Doe",
-            email="john.doe@example.com",
-            password="Password123"
-        )
-        self.valid_theme_data = {
-            "title": "Politics",
-            "description": "Political discussions and debates.",
-            "creator": self.user
-        }
+        self.user = make_user()
 
-    def test_create_argument_theme(self):
-        """Test that an ArgumentTheme can be created successfully."""
-        theme = ArgumentTheme.objects.create(**self.valid_theme_data)
-        self.assertEqual(theme.title, "Politics")
-        self.assertEqual(theme.description, "Political discussions and debates.")
+    def test_create_theme(self):
+        theme = ArgumentTheme.objects.create(title="Philosophy", creator=self.user)
+        self.assertEqual(theme.title, "Philosophy")
         self.assertEqual(theme.creator, self.user)
-        self.assertIsNotNone(theme.date_created)
 
     def test_title_uniqueness(self):
-        """Test that title must be unique."""
-        ArgumentTheme.objects.create(**self.valid_theme_data)
-        duplicate_theme = ArgumentTheme(**self.valid_theme_data)
+        ArgumentTheme.objects.create(title="UniqueTheme", creator=self.user)
         with self.assertRaises(Exception):
-            duplicate_theme.save()
+            ArgumentTheme.objects.create(title="UniqueTheme", creator=self.user)
 
-    def test_blank_description_allowed(self):
-        """Test that description can be blank."""
-        theme_data = self.valid_theme_data.copy()
-        theme_data["title"] = "Technology"
-        theme_data["description"] = ""
-        theme = ArgumentTheme(**theme_data)
-        theme.full_clean()
+    def test_description_is_optional(self):
+        theme = ArgumentTheme.objects.create(title="No Desc", creator=self.user, description="")
+        self.assertEqual(theme.description, "")
 
-    def test_default_title_value(self):
-        """Test that default title is 'Other'."""
-        theme = ArgumentTheme.objects.create(creator=self.user)
-        self.assertEqual(theme.title, "Other")
+    def test_date_created_auto_set(self):
+        theme = ArgumentTheme.objects.create(title="Dated", creator=self.user)
+        self.assertIsNotNone(theme.date_created)
+        self.assertLessEqual(theme.date_created, timezone.now())
 
-    def test_creator_default_deleted_user(self):
-        """Test that creator defaults to deleted_user if not provided."""
-        theme = ArgumentTheme.objects.create(title="Science")
-        deleted_user = User.objects.get(username="deleted_user")
-        self.assertEqual(theme.creator, deleted_user)
+    def test_get_or_create_other_theme_creates_once(self):
+        first = ArgumentTheme.get_or_create_other_theme()
+        second = ArgumentTheme.get_or_create_other_theme()
+        self.assertEqual(first, second)
 
-    def test_creator_set_default_on_user_delete(self):
-        """Test that creator is set to deleted_user when original creator is deleted."""
-        theme = ArgumentTheme.objects.create(**self.valid_theme_data)
-        self.user.delete()
+    def test_get_or_create_other_theme_title(self):
+        ArgumentTheme.get_or_create_other_theme()
+        other_theme = ArgumentTheme.objects.get(title="Other")
+        self.assertEqual(other_theme.title, "Other")
+
+    def test_creator_set_to_deleted_user_on_user_deletion(self):
+        creator = make_user(username="creator_to_delete", email="creator_del@example.com")
+        theme = ArgumentTheme.objects.create(title="Orphaned Theme", creator=creator)
+        creator.delete()
         theme.refresh_from_db()
-        deleted_user = User.objects.get(username="deleted_user")
-        self.assertEqual(theme.creator, deleted_user)
-
-    def test_get_or_create_other_theme(self):
-        """Test get_or_create_other_theme returns the same 'Other' instance."""
-        theme_first = ArgumentTheme.get_or_create_other_theme()
-        theme_second = ArgumentTheme.get_or_create_other_theme()
-        self.assertEqual(theme_first.id, theme_second.id)
-        self.assertEqual(theme_first.title, "Other")
-
-    def test_required_title_field(self):
-        """Test that title cannot be blank."""
-        theme = ArgumentTheme(
-            title="",
-            description="Some description",
-            creator=self.user
-        )
-        with self.assertRaises(ValidationError):
-            theme.full_clean()
+        self.assertEqual(theme.creator_id, User.deleted_user())

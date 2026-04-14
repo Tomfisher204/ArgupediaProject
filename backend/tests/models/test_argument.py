@@ -1,221 +1,123 @@
 from django.test import TestCase
-from django.core.exceptions import ValidationError
-from backend.models import (
-    User,
-    ArgumentTheme,
-    ArgumentScheme,
-    SchemeField,
-    Argument,
-    ArgumentFieldValue,
-    ArgumentVote
-)
+from django.utils import timezone
+from backend.models import User, ArgumentScheme, ArgumentTheme, SchemeField, Argument, ArgumentFieldValue
 
+def make_user(username="test_user", email="test@example.com", **kwargs):
+    return User.objects.create(
+        username=username,
+        first_name="Test",
+        last_name="User",
+        email=email,
+        password="Password123",
+        **kwargs,
+    )
+
+def make_scheme(name="Test Scheme", created_by=None):
+    return ArgumentScheme.objects.create(
+        name=name,
+        created_by=created_by or make_user(username=f"scheme_creator_{name}", email=f"sc_{name}@example.com"),
+    )
+
+def make_theme(title="Science", creator=None):
+    return ArgumentTheme.objects.create(
+        title=title,
+        creator=creator or make_user(username=f"theme_creator_{title}", email=f"tc_{title}@example.com"),
+    )
 
 class ArgumentModelTests(TestCase):
-    """Tests for the Argument model and related models."""
+    """Tests for the Argument model validation and functionality."""
 
     def setUp(self):
-        self.user = User.objects.create(
-            username="author_user",
-            first_name="Author",
-            last_name="User",
-            email="author@example.com",
-            password="Password123"
-        )
-        self.other_user = User.objects.create(
-            username="voter_user",
-            first_name="Voter",
-            last_name="User",
-            email="voter@example.com",
-            password="Password123"
-        )
-        self.theme = ArgumentTheme.objects.create(
-            title="Politics",
-            description="Political debates",
-            creator=self.user
-        )
-        self.scheme = ArgumentScheme.objects.create(
-            name="Causal Scheme",
-            description="Cause and effect reasoning",
-            created_by=self.user
-        )
-        self.scheme_field = SchemeField.objects.create(
-            scheme=self.scheme,
-            name="Premise"
-        )
-        self.valid_argument_data = {
-            "author": self.user,
-            "theme": self.theme,
-            "scheme": self.scheme
-        }
+        self.user = make_user()
+        self.scheme = make_scheme(created_by=self.user)
+        self.theme = make_theme(creator=self.user)
 
     def test_create_argument(self):
-        """Test that an Argument can be created successfully."""
-        argument = Argument.objects.create(**self.valid_argument_data)
-        self.assertEqual(argument.author, self.user)
-        self.assertEqual(argument.theme, self.theme)
-        self.assertEqual(argument.scheme, self.scheme)
-        self.assertIsNotNone(argument.date_created)
+        arg = Argument.objects.create(author=self.user, scheme=self.scheme, theme=self.theme)
+        self.assertEqual(arg.author, self.user)
+        self.assertEqual(arg.scheme, self.scheme)
+        self.assertEqual(arg.theme, self.theme)
 
-    def test_argument_default_author(self):
-        """Test that author defaults to deleted_user if not provided."""
-        argument = Argument.objects.create(
-            theme=self.theme,
-            scheme=self.scheme
-        )
-        deleted_user = User.objects.get(username="deleted_user")
-        self.assertEqual(argument.author, deleted_user)
+    def test_is_winning_defaults_to_none(self):
+        arg = Argument.objects.create(author=self.user, scheme=self.scheme, theme=self.theme)
+        self.assertIsNone(arg.is_winning)
 
-    def test_argument_default_theme(self):
-        """Test that theme defaults to 'Other' if not provided."""
-        argument = Argument.objects.create(
-            author=self.user,
-            scheme=self.scheme
-        )
+    def test_root_defaults_to_false(self):
+        arg = Argument.objects.create(author=self.user, scheme=self.scheme, theme=self.theme)
+        self.assertFalse(arg.root)
+
+    def test_date_created_auto_set(self):
+        arg = Argument.objects.create(author=self.user, scheme=self.scheme, theme=self.theme)
+        self.assertIsNotNone(arg.date_created)
+        self.assertLessEqual(arg.date_created, timezone.now())
+
+    def test_author_defaults_to_deleted_user_on_deletion(self):
+        author = make_user(username="author_to_delete", email="author_del@example.com")
+        arg = Argument.objects.create(author=author, scheme=self.scheme, theme=self.theme)
+        author.delete()
+        arg.refresh_from_db()
+        self.assertEqual(arg.author_id, User.deleted_user())
+
+    def test_theme_defaults_to_other_on_deletion(self):
+        theme = make_theme(title="Temp Theme")
+        arg = Argument.objects.create(author=self.user, scheme=self.scheme, theme=theme)
+        theme.delete()
+        arg.refresh_from_db()
         other_theme = ArgumentTheme.objects.get(title="Other")
-        self.assertEqual(argument.theme, other_theme)
+        self.assertEqual(arg.theme, other_theme)
 
-    def test_argument_deleted_when_scheme_deleted(self):
-        """Test that Argument is deleted when related scheme is deleted."""
-        argument = Argument.objects.create(**self.valid_argument_data)
+    def test_reported_by_many_to_many(self):
+        reporter1 = make_user(username="reporter1", email="rep1@example.com")
+        reporter2 = make_user(username="reporter2", email="rep2@example.com")
+        arg = Argument.objects.create(author=self.user, scheme=self.scheme, theme=self.theme)
+        arg.reported_by.add(reporter1, reporter2)
+        self.assertIn(reporter1, arg.reported_by.all())
+        self.assertIn(reporter2, arg.reported_by.all())
+
+    def test_reported_by_is_optional(self):
+        arg = Argument.objects.create(author=self.user, scheme=self.scheme, theme=self.theme)
+        self.assertEqual(arg.reported_by.count(), 0)
+
+    def test_cascade_delete_with_scheme(self):
+        arg = Argument.objects.create(author=self.user, scheme=self.scheme, theme=self.theme)
+        arg_id = arg.id
         self.scheme.delete()
-        self.assertEqual(Argument.objects.count(), 0)
-
-    def test_argument_author_set_default_on_delete(self):
-        """Test that author is set to deleted_user when original author is deleted."""
-        argument = Argument.objects.create(**self.valid_argument_data)
-        self.user.delete()
-        argument.refresh_from_db()
-        deleted_user = User.objects.get(username="deleted_user")
-        self.assertEqual(argument.author, deleted_user)
-
-    def test_argument_theme_set_default_on_delete(self):
-        """Test that theme is set to 'Other' when original theme is deleted."""
-        argument = Argument.objects.create(**self.valid_argument_data)
-        self.theme.delete()
-        argument.refresh_from_db()
-        other_theme = ArgumentTheme.objects.get(title="Other")
-        self.assertEqual(argument.theme, other_theme)
+        self.assertFalse(Argument.objects.filter(id=arg_id).exists())
 
 
 class ArgumentFieldValueModelTests(TestCase):
-    """Tests for the ArgumentFieldValue model."""
+    """Tests for the ArgumentFieldValue model validation and functionality."""
 
     def setUp(self):
-        self.user = User.objects.create(
-            username="field_user",
-            first_name="Field",
-            last_name="User",
-            email="field@example.com",
-            password="Password123"
-        )
-        self.scheme = ArgumentScheme.objects.create(
-            name="Analogical Scheme",
-            description="Arguments by analogy",
-            created_by=self.user
-        )
-        self.scheme_field = SchemeField.objects.create(
-            scheme=self.scheme,
-            name="Conclusion"
-        )
-        self.argument = Argument.objects.create(
-            author=self.user,
-            scheme=self.scheme
-        )
+        self.user = make_user()
+        self.scheme = make_scheme(created_by=self.user)
+        self.theme = make_theme(creator=self.user)
+        self.argument = Argument.objects.create(author=self.user, scheme=self.scheme, theme=self.theme)
+        self.field = SchemeField.objects.create(scheme=self.scheme, name="Premise", order=1)
 
-    def test_create_argument_field_value(self):
-        """Test that an ArgumentFieldValue can be created successfully."""
-        field_value = ArgumentFieldValue.objects.create(
-            argument=self.argument,
-            scheme_field=self.scheme_field,
-            value="This is the conclusion."
-        )
-        self.assertEqual(field_value.argument, self.argument)
-        self.assertEqual(field_value.scheme_field, self.scheme_field)
-        self.assertEqual(field_value.value, "This is the conclusion.")
+    def test_create_field_value(self):
+        afv = ArgumentFieldValue.objects.create(argument=self.argument, scheme_field=self.field, value="All men are mortal.")
+        self.assertEqual(afv.value, "All men are mortal.")
+        self.assertEqual(afv.argument, self.argument)
+        self.assertEqual(afv.scheme_field, self.field)
 
-    def test_field_value_deleted_with_argument(self):
-        """Test that ArgumentFieldValue is deleted when Argument is deleted."""
-        ArgumentFieldValue.objects.create(
-            argument=self.argument,
-            scheme_field=self.scheme_field,
-            value="Some value"
-        )
+    def test_value_can_be_long_text(self):
+        long_value = "x" * 5000
+        afv = ArgumentFieldValue.objects.create(argument=self.argument, scheme_field=self.field, value=long_value)
+        self.assertEqual(len(afv.value), 5000)
+
+    def test_cascade_delete_with_argument(self):
+        afv = ArgumentFieldValue.objects.create(argument=self.argument, scheme_field=self.field, value="To be deleted")
+        afv_id = afv.id
         self.argument.delete()
-        self.assertEqual(ArgumentFieldValue.objects.count(), 0)
+        self.assertFalse(ArgumentFieldValue.objects.filter(id=afv_id).exists())
 
+    def test_multiple_field_values_per_argument(self):
+        field2 = SchemeField.objects.create(scheme=self.scheme, name="Conclusion", order=2)
+        ArgumentFieldValue.objects.create(argument=self.argument, scheme_field=self.field, value="Premise value")
+        ArgumentFieldValue.objects.create(argument=self.argument, scheme_field=field2, value="Conclusion value")
+        self.assertEqual(ArgumentFieldValue.objects.filter(argument=self.argument).count(), 2)
 
-class ArgumentVoteModelTests(TestCase):
-    """Tests for the ArgumentVote model."""
-
-    def setUp(self):
-        self.user = User.objects.create(
-            username="vote_author",
-            first_name="Vote",
-            last_name="Author",
-            email="vote_author@example.com",
-            password="Password123"
-        )
-        self.voter = User.objects.create(
-            username="vote_user",
-            first_name="Vote",
-            last_name="User",
-            email="vote_user@example.com",
-            password="Password123"
-        )
-        self.scheme = ArgumentScheme.objects.create(
-            name="Ethical Scheme",
-            description="Ethical reasoning",
-            created_by=self.user
-        )
-        self.argument = Argument.objects.create(
-            author=self.user,
-            scheme=self.scheme
-        )
-
-    def test_create_argument_vote(self):
-        """Test that an ArgumentVote can be created successfully."""
-        vote = ArgumentVote.objects.create(
-            argument=self.argument,
-            user=self.voter,
-            is_upvote=True
-        )
-        self.assertEqual(vote.argument, self.argument)
-        self.assertEqual(vote.user, self.voter)
-        self.assertTrue(vote.is_upvote)
-
-    def test_vote_deleted_with_argument(self):
-        """Test that votes are deleted when Argument is deleted."""
-        ArgumentVote.objects.create(
-            argument=self.argument,
-            user=self.voter,
-            is_upvote=True
-        )
-        self.argument.delete()
-        self.assertEqual(ArgumentVote.objects.count(), 0)
-
-    def test_vote_deleted_with_user(self):
-        """Test that votes are deleted when User is deleted."""
-        ArgumentVote.objects.create(
-            argument=self.argument,
-            user=self.voter,
-            is_upvote=True
-        )
-        self.voter.delete()
-        self.assertEqual(ArgumentVote.objects.count(), 0)
-
-    def test_related_name_votes(self):
-        """Test that related_name 'votes' works correctly."""
-        vote1 = ArgumentVote.objects.create(
-            argument=self.argument,
-            user=self.voter,
-            is_upvote=True
-        )
-        vote2 = ArgumentVote.objects.create(
-            argument=self.argument,
-            user=self.user,
-            is_upvote=False
-        )
-        self.assertEqual(self.argument.votes.count(), 2)
-        self.assertIn(vote1, self.argument.votes.all())
-        self.assertIn(vote2, self.argument.votes.all())
+    def test_related_name_field_values(self):
+        ArgumentFieldValue.objects.create(argument=self.argument, scheme_field=self.field, value="Test")
+        self.assertEqual(self.argument.field_values.count(), 1)

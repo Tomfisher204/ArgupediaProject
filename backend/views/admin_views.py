@@ -193,10 +193,7 @@ class AdminCriticalQuestionsView(APIView):
     
     def delete(self, request, cq_id=None):
         if not cq_id:
-            return Response(
-                {'error': 'cq_id is required'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({'error': 'cq_id is required'}, status=status.HTTP_400_BAD_REQUEST)
         cq = get_object_or_404(CriticalQuestion, id=cq_id)
         cq.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

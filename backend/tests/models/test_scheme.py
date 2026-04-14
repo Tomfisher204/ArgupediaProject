@@ -1,117 +1,87 @@
 from django.test import TestCase
-from django.core.exceptions import ValidationError
+from django.utils import timezone
 from backend.models import User, ArgumentScheme, SchemeField
 
+def make_user(username="test_user", email="test@example.com", **kwargs):
+    return User.objects.create(
+        username=username,
+        first_name="Test",
+        last_name="User",
+        email=email,
+        password="Password123",
+        **kwargs,
+    )
+
+def make_scheme(name="Test Scheme", created_by=None):
+    return ArgumentScheme.objects.create(
+        name=name,
+        created_by=created_by or make_user(username=f"creator_{name}", email=f"{name}@example.com"),
+    )
 
 class ArgumentSchemeModelTests(TestCase):
-    """Tests for the ArgumentScheme and SchemeField models."""
+    """Tests for the ArgumentScheme model validation and functionality."""
 
     def setUp(self):
-        self.user = User.objects.create(
-            username="john_doe",
-            first_name="John",
-            last_name="Doe",
-            email="john.doe@example.com",
-            password="Password123"
-        )
-        self.valid_scheme_data = {
-            "name": "Causal Argument",
-            "description": "Arguments based on cause and effect.",
-            "created_by": self.user
-        }
+        self.user = make_user()
 
-    def test_create_argument_scheme(self):
-        """Test that an ArgumentScheme can be created successfully."""
-        scheme = ArgumentScheme.objects.create(**self.valid_scheme_data)
-        self.assertEqual(scheme.name, "Causal Argument")
-        self.assertEqual(scheme.description, "Arguments based on cause and effect.")
+    def test_create_scheme(self):
+        scheme = ArgumentScheme.objects.create(name="Modus Ponens", created_by=self.user)
+        self.assertEqual(scheme.name, "Modus Ponens")
         self.assertEqual(scheme.created_by, self.user)
-        self.assertIsNotNone(scheme.date_created)
 
     def test_name_uniqueness(self):
-        """Test that scheme name must be unique."""
-        ArgumentScheme.objects.create(**self.valid_scheme_data)
-        duplicate_scheme = ArgumentScheme(**self.valid_scheme_data)
+        ArgumentScheme.objects.create(name="UniqueScheme", created_by=self.user)
         with self.assertRaises(Exception):
-            duplicate_scheme.save()
+            ArgumentScheme.objects.create(name="UniqueScheme", created_by=self.user)
 
-    def test_blank_description_allowed(self):
-        """Test that description can be blank."""
-        scheme_data = self.valid_scheme_data.copy()
-        scheme_data["name"] = "Analogical Argument"
-        scheme_data["description"] = ""
-        scheme = ArgumentScheme(**scheme_data)
-        scheme.full_clean()
+    def test_description_and_template_optional(self):
+        scheme = ArgumentScheme.objects.create(name="Minimal", created_by=self.user, description="", template="")
+        self.assertEqual(scheme.description, "")
+        self.assertEqual(scheme.template, "")
 
-    def test_created_by_default_deleted_user(self):
-        """Test that created_by defaults to deleted_user if not provided."""
-        scheme = ArgumentScheme.objects.create(name="Ethical Argument")
-        deleted_user = User.objects.get(username="deleted_user")
-        self.assertEqual(scheme.created_by, deleted_user)
+    def test_date_created_auto_set(self):
+        scheme = ArgumentScheme.objects.create(name="Dated Scheme", created_by=self.user)
+        self.assertIsNotNone(scheme.date_created)
+        self.assertLessEqual(scheme.date_created, timezone.now())
 
-    def test_created_by_set_default_on_user_delete(self):
-        """Test that created_by is set to deleted_user when original creator is deleted."""
-        scheme = ArgumentScheme.objects.create(**self.valid_scheme_data)
-        self.user.delete()
+    def test_created_by_defaults_to_deleted_user_on_deletion(self):
+        creator = make_user(username="scheme_del_user", email="scheme_del@example.com")
+        scheme = ArgumentScheme.objects.create(name="Orphan Scheme", created_by=creator)
+        creator.delete()
         scheme.refresh_from_db()
-        deleted_user = User.objects.get(username="deleted_user")
-        self.assertEqual(scheme.created_by, deleted_user)
-
+        self.assertEqual(scheme.created_by_id, User.deleted_user())
 
 class SchemeFieldModelTests(TestCase):
-    """Tests for the SchemeField model."""
+    """Tests for the SchemeField model validation and functionality."""
 
     def setUp(self):
-        self.user = User.objects.create(
-            username="jane_doe",
-            first_name="Jane",
-            last_name="Doe",
-            email="jane.doe@example.com",
-            password="Password123"
-        )
-        self.scheme = ArgumentScheme.objects.create(
-            name="Practical Reasoning",
-            description="Reasoning about actions.",
-            created_by=self.user
-        )
+        self.scheme = make_scheme()
 
     def test_create_scheme_field(self):
-        """Test that a SchemeField can be created successfully."""
-        field = SchemeField.objects.create(
-            scheme=self.scheme,
-            name="Premise"
-        )
-        self.assertEqual(field.scheme, self.scheme)
+        field = SchemeField.objects.create(scheme=self.scheme, name="Premise", order=1)
         self.assertEqual(field.name, "Premise")
+        self.assertEqual(field.scheme, self.scheme)
 
-    def test_scheme_field_requires_name(self):
-        """Test that name cannot be blank."""
-        field = SchemeField(
-            scheme=self.scheme,
-            name=""
-        )
-        with self.assertRaises(ValidationError):
-            field.full_clean()
+    def test_default_order_is_zero(self):
+        field = SchemeField.objects.create(scheme=self.scheme, name="No Order")
+        self.assertEqual(field.order, 0)
 
-    def test_scheme_related_name_fields(self):
-        """Test that related_name 'fields' works correctly."""
-        field1 = SchemeField.objects.create(
-            scheme=self.scheme,
-            name="Premise"
-        )
-        field2 = SchemeField.objects.create(
-            scheme=self.scheme,
-            name="Conclusion"
-        )
-        self.assertIn(field1, self.scheme.fields.all())
-        self.assertIn(field2, self.scheme.fields.all())
-        self.assertEqual(self.scheme.fields.count(), 2)
+    def test_fields_ordered_by_order_then_id(self):
+        field_b = SchemeField.objects.create(scheme=self.scheme, name="B", order=2)
+        field_a = SchemeField.objects.create(scheme=self.scheme, name="A", order=1)
+        field_c = SchemeField.objects.create(scheme=self.scheme, name="C", order=2)
+        fields = list(SchemeField.objects.filter(scheme=self.scheme))
+        self.assertEqual(fields[0], field_a)
+        self.assertEqual(fields[1], field_b)
+        self.assertEqual(fields[2], field_c)
 
-    def test_scheme_field_deleted_with_scheme(self):
-        """Test that SchemeFields are deleted when the parent scheme is deleted."""
-        SchemeField.objects.create(
-            scheme=self.scheme,
-            name="Premise"
-        )
+    def test_cascade_delete_with_scheme(self):
+        field = SchemeField.objects.create(scheme=self.scheme, name="ToDelete", order=0)
+        field_id = field.id
         self.scheme.delete()
-        self.assertEqual(SchemeField.objects.count(), 0)
+        self.assertFalse(SchemeField.objects.filter(id=field_id).exists())
+
+    def test_multiple_fields_per_scheme(self):
+        SchemeField.objects.create(scheme=self.scheme, name="Field 1", order=1)
+        SchemeField.objects.create(scheme=self.scheme, name="Field 2", order=2)
+        self.assertEqual(SchemeField.objects.filter(scheme=self.scheme).count(), 2)

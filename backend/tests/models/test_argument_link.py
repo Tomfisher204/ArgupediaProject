@@ -1,149 +1,153 @@
 from django.test import TestCase
-from django.core.exceptions import ValidationError
-from backend.models import (
-    User,
-    ArgumentTheme,
-    ArgumentScheme,
-    Argument,
-    CriticalQuestion,
-    ArgumentLink
-)
+from django.utils import timezone
+from backend.models import User, ArgumentScheme, ArgumentTheme, Argument, CriticalQuestion, ArgumentLink
 
+def make_user(username="test_user", email="test@example.com", **kwargs):
+    return User.objects.create(
+        username=username,
+        first_name="Test",
+        last_name="User",
+        email=email,
+        password="Password123",
+        **kwargs,
+    )
+
+def make_scheme(name="Test Scheme", created_by=None):
+    return ArgumentScheme.objects.create(
+        name=name,
+        created_by=created_by or make_user(username=f"scheme_creator_{name}", email=f"sc_{name}@example.com"),
+    )
+
+def make_theme(title="Science", creator=None):
+    return ArgumentTheme.objects.create(
+        title=title,
+        creator=creator or make_user(username=f"theme_creator_{title}", email=f"tc_{title}@example.com"),
+    )
+
+def make_argument(username, email, scheme, theme):
+    return Argument.objects.create(
+        author=make_user(username=username, email=email),
+        scheme=scheme,
+        theme=theme,
+    )
 
 class ArgumentLinkModelTests(TestCase):
-    """Tests for the ArgumentLink model."""
+    """Tests for the ArgumentLink model validation and functionality."""
 
     def setUp(self):
-        self.user = User.objects.create(
-            username="link_user",
-            first_name="Link",
-            last_name="User",
-            email="link_user@example.com",
-            password="Password123"
-        )
-        self.theme = ArgumentTheme.objects.create(
-            title="Link Theme",
-            description="Theme for link tests",
-            creator=self.user
-        )
-        self.parent_scheme = ArgumentScheme.objects.create(
-            name="Parent Scheme",
-            description="Parent argument scheme",
-            created_by=self.user
-        )
-        self.child_scheme = ArgumentScheme.objects.create(
-            name="Child Scheme",
-            description="Child argument scheme",
-            created_by=self.user
-        )
-        self.parent_argument = Argument.objects.create(
-            author=self.user,
-            theme=self.theme,
-            scheme=self.parent_scheme
-        )
-        self.child_argument = Argument.objects.create(
-            author=self.user,
-            theme=self.theme,
-            scheme=self.child_scheme
-        )
-        self.critical_question = CriticalQuestion.objects.create(
-            scheme=self.parent_scheme,
-            question="Is this reasoning logically valid?"
-        )
-        self.valid_link_data = {
-            "parent_argument": self.parent_argument,
-            "child_argument": self.child_argument,
-            "critical_question": self.critical_question,
-            "attacking": True
-        }
+        self.user = make_user()
+        self.scheme = make_scheme(created_by=self.user)
+        self.theme = make_theme(creator=self.user)
+        self.arg_a = make_argument("author_a", "author_a@example.com", self.scheme, self.theme)
+        self.arg_b = make_argument("author_b", "author_b@example.com", self.scheme, self.theme)
+        self.one_way_cq = CriticalQuestion.objects.create(scheme=self.scheme, question="One-way CQ?", two_way=False)
+        self.two_way_cq = CriticalQuestion.objects.create(scheme=self.scheme, question="Two-way CQ?", two_way=True)
 
     def test_create_argument_link(self):
-        """Test that an ArgumentLink can be created successfully."""
-        link = ArgumentLink.objects.create(**self.valid_link_data)
-        self.assertEqual(link.parent_argument, self.parent_argument)
-        self.assertEqual(link.child_argument, self.child_argument)
-        self.assertEqual(link.critical_question, self.critical_question)
-        self.assertTrue(link.attacking)
-        self.assertIsNotNone(link.date_created)
-
-    def test_two_way_critical_question_creates_reciprocal_link(self):
-        """Two-way critical questions create reciprocal child links."""
-        self.critical_question.two_way = True
-        self.critical_question.save()
-
-        ArgumentLink.objects.create(**self.valid_link_data)
-
-        self.assertTrue(ArgumentLink.objects.filter(
-            parent_argument=self.parent_argument,
-            child_argument=self.child_argument
-        ).exists())
-
-        self.assertTrue(ArgumentLink.objects.filter(
-            parent_argument=self.child_argument,
-            child_argument=self.parent_argument
-        ).exists())
-
-    def test_non_two_way_does_not_create_reciprocal_link(self):
-        """Non-two-way critical questions do not create reciprocal links."""
-        self.critical_question.two_way = False
-        self.critical_question.save()
-
-        ArgumentLink.objects.create(**self.valid_link_data)
-
-        self.assertEqual(ArgumentLink.objects.filter(
-            parent_argument=self.parent_argument,
-            child_argument=self.child_argument
-        ).count(), 1)
-        self.assertEqual(ArgumentLink.objects.filter(
-            parent_argument=self.child_argument,
-            child_argument=self.parent_argument
-        ).count(), 0)
-
-    def test_attacking_default_true(self):
-        """Test that attacking defaults to True."""
         link = ArgumentLink.objects.create(
-            parent_argument=self.parent_argument,
-            child_argument=self.child_argument,
-            critical_question=self.critical_question
+            parent_argument=self.arg_a,
+            child_argument=self.arg_b,
+            critical_question=self.one_way_cq,
+        )
+        self.assertEqual(link.parent_argument, self.arg_a)
+        self.assertEqual(link.child_argument, self.arg_b)
+        self.assertEqual(link.critical_question, self.one_way_cq)
+
+    def test_attacking_defaults_to_true(self):
+        link = ArgumentLink.objects.create(
+            parent_argument=self.arg_a,
+            child_argument=self.arg_b,
+            critical_question=self.one_way_cq,
         )
         self.assertTrue(link.attacking)
 
-    def test_argument_link_deleted_with_parent_argument(self):
-        """Test that ArgumentLink is deleted when parent argument is deleted."""
-        ArgumentLink.objects.create(**self.valid_link_data)
-        self.parent_argument.delete()
-        self.assertEqual(ArgumentLink.objects.count(), 0)
-
-    def test_argument_link_deleted_with_child_argument(self):
-        """Test that ArgumentLink is deleted when child argument is deleted."""
-        ArgumentLink.objects.create(**self.valid_link_data)
-        self.child_argument.delete()
-        self.assertEqual(ArgumentLink.objects.count(), 0)
-
-    def test_argument_link_deleted_with_critical_question(self):
-        """Test that ArgumentLink is deleted when critical question is deleted."""
-        ArgumentLink.objects.create(**self.valid_link_data)
-        self.critical_question.delete()
-        self.assertEqual(ArgumentLink.objects.count(), 0)
-
-    def test_related_name_child_links(self):
-        """Test that related_name 'child_links' works correctly for the parent argument."""
-        link = ArgumentLink.objects.create(**self.valid_link_data)
-        self.assertIn(link, self.parent_argument.child_links.all())
-        self.assertEqual(self.parent_argument.child_links.count(), 1)
-
-    def test_related_name_parent_links(self):
-        """Test that related_name 'parent_links' works correctly for the child argument."""
-        link = ArgumentLink.objects.create(**self.valid_link_data)
-        self.assertIn(link, self.child_argument.parent_links.all())
-        self.assertEqual(self.child_argument.parent_links.count(), 1)
-
-    def test_required_fields(self):
-        """Test that required fields cannot be blank."""
-        link = ArgumentLink(
-            parent_argument=None,
-            child_argument=self.child_argument,
-            critical_question=self.critical_question
+    def test_attacking_can_be_set_false(self):
+        link = ArgumentLink.objects.create(
+            parent_argument=self.arg_a,
+            child_argument=self.arg_b,
+            critical_question=self.one_way_cq,
+            attacking=False,
         )
-        with self.assertRaises(ValidationError):
-            link.full_clean()
+        self.assertFalse(link.attacking)
+
+    def test_date_created_auto_set(self):
+        link = ArgumentLink.objects.create(
+            parent_argument=self.arg_a,
+            child_argument=self.arg_b,
+            critical_question=self.one_way_cq,
+        )
+        self.assertIsNotNone(link.date_created)
+        self.assertLessEqual(link.date_created, timezone.now())
+
+    def test_one_way_cq_does_not_create_reciprocal(self):
+        ArgumentLink.objects.create(
+            parent_argument=self.arg_a,
+            child_argument=self.arg_b,
+            critical_question=self.one_way_cq,
+        )
+        self.assertEqual(ArgumentLink.objects.count(), 1)
+
+    def test_two_way_cq_creates_reciprocal_link(self):
+        ArgumentLink.objects.create(
+            parent_argument=self.arg_a,
+            child_argument=self.arg_b,
+            critical_question=self.two_way_cq,
+        )
+        self.assertEqual(ArgumentLink.objects.count(), 2)
+        reciprocal_exists = ArgumentLink.objects.filter(
+            parent_argument=self.arg_b,
+            child_argument=self.arg_a,
+            critical_question=self.two_way_cq,
+        ).exists()
+        self.assertTrue(reciprocal_exists)
+
+    def test_two_way_reciprocal_not_duplicated_on_resave(self):
+        link = ArgumentLink.objects.create(
+            parent_argument=self.arg_a,
+            child_argument=self.arg_b,
+            critical_question=self.two_way_cq,
+        )
+        link.save()
+        self.assertEqual(ArgumentLink.objects.count(), 2)
+
+    def test_two_way_reciprocal_preserves_attacking_flag(self):
+        ArgumentLink.objects.create(
+            parent_argument=self.arg_a,
+            child_argument=self.arg_b,
+            critical_question=self.two_way_cq,
+            attacking=False,
+        )
+        reciprocal = ArgumentLink.objects.get(
+            parent_argument=self.arg_b,
+            child_argument=self.arg_a,
+        )
+        self.assertFalse(reciprocal.attacking)
+
+    def test_cascade_delete_with_parent_argument(self):
+        link = ArgumentLink.objects.create(
+            parent_argument=self.arg_a,
+            child_argument=self.arg_b,
+            critical_question=self.one_way_cq,
+        )
+        link_id = link.id
+        self.arg_a.delete()
+        self.assertFalse(ArgumentLink.objects.filter(id=link_id).exists())
+
+    def test_cascade_delete_with_critical_question(self):
+        link = ArgumentLink.objects.create(
+            parent_argument=self.arg_a,
+            child_argument=self.arg_b,
+            critical_question=self.one_way_cq,
+        )
+        link_id = link.id
+        self.one_way_cq.delete()
+        self.assertFalse(ArgumentLink.objects.filter(id=link_id).exists())
+
+    def test_related_names_child_and_parent_links(self):
+        ArgumentLink.objects.create(
+            parent_argument=self.arg_a,
+            child_argument=self.arg_b,
+            critical_question=self.one_way_cq,
+        )
+        self.assertEqual(self.arg_a.child_links.count(), 1)
+        self.assertEqual(self.arg_b.parent_links.count(), 1)

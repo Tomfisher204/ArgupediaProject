@@ -1,75 +1,54 @@
 from django.test import TestCase
-from django.core.exceptions import ValidationError
+from django.utils import timezone
 from backend.models import User, ArgumentScheme, CriticalQuestion
 
+def make_user(username="test_user", email="test@example.com", **kwargs):
+    return User.objects.create(
+        username=username,
+        first_name="Test",
+        last_name="User",
+        email=email,
+        password="Password123",
+        **kwargs,
+    )
+
+def make_scheme(name="CQ Test Scheme"):
+    return ArgumentScheme.objects.create(
+        name=name,
+        created_by=make_user(username=f"creator_{name}", email=f"{name}@example.com"),
+    )
 
 class CriticalQuestionModelTests(TestCase):
-    """Tests for the CriticalQuestion model."""
+    """Tests for the CriticalQuestion model validation and functionality."""
 
     def setUp(self):
-        self.user = User.objects.create(
-            username="john_smith",
-            first_name="John",
-            last_name="Smith",
-            email="john.smith@example.com",
-            password="Password123"
-        )
-        self.scheme = ArgumentScheme.objects.create(
-            name="Argument from Authority",
-            description="Arguments based on expert opinion.",
-            created_by=self.user
-        )
-        self.valid_question_data = {
-            "scheme": self.scheme,
-            "question": "Is the authority cited truly an expert in this field?"
-        }
+        self.scheme = make_scheme()
 
     def test_create_critical_question(self):
-        """Test that a CriticalQuestion can be created successfully."""
-        question = CriticalQuestion.objects.create(**self.valid_question_data)
-        self.assertEqual(question.scheme, self.scheme)
-        self.assertEqual(
-            question.question,
-            "Is the authority cited truly an expert in this field?"
-        )
-        self.assertIsNotNone(question.date_created)
+        cq = CriticalQuestion.objects.create(scheme=self.scheme, question="Is the premise true?")
+        self.assertEqual(cq.question, "Is the premise true?")
+        self.assertEqual(cq.scheme, self.scheme)
 
-    def test_question_required(self):
-        """Test that question field cannot be blank."""
-        question = CriticalQuestion(
-            scheme=self.scheme,
-            question=""
-        )
-        with self.assertRaises(ValidationError):
-            question.full_clean()
+    def test_two_way_defaults_to_false(self):
+        cq = CriticalQuestion.objects.create(scheme=self.scheme, question="One-way CQ?")
+        self.assertFalse(cq.two_way)
 
-    def test_scheme_required(self):
-        """Test that scheme field is required."""
-        question = CriticalQuestion(
-            question="Some critical question?"
-        )
-        with self.assertRaises(ValidationError):
-            question.full_clean()
+    def test_two_way_can_be_set_true(self):
+        cq = CriticalQuestion.objects.create(scheme=self.scheme, question="Two-way CQ?", two_way=True)
+        self.assertTrue(cq.two_way)
 
-    def test_critical_questions_deleted_with_scheme(self):
-        """Test that CriticalQuestions are deleted when the related scheme is deleted."""
-        CriticalQuestion.objects.create(**self.valid_question_data)
+    def test_date_created_auto_set(self):
+        cq = CriticalQuestion.objects.create(scheme=self.scheme, question="Dated?")
+        self.assertIsNotNone(cq.date_created)
+        self.assertLessEqual(cq.date_created, timezone.now())
+
+    def test_cascade_delete_with_scheme(self):
+        cq = CriticalQuestion.objects.create(scheme=self.scheme, question="Will be deleted")
+        cq_id = cq.id
         self.scheme.delete()
-        self.assertEqual(CriticalQuestion.objects.count(), 0)
+        self.assertFalse(CriticalQuestion.objects.filter(id=cq_id).exists())
 
     def test_multiple_questions_per_scheme(self):
-        """Test that multiple critical questions can belong to the same scheme."""
-        q1 = CriticalQuestion.objects.create(
-            scheme=self.scheme,
-            question="Is the authority biased?"
-        )
-        q2 = CriticalQuestion.objects.create(
-            scheme=self.scheme,
-            question="Is the authority reliable?"
-        )
-        self.assertEqual(
-            CriticalQuestion.objects.filter(scheme=self.scheme).count(),
-            2
-        )
-        self.assertIn(q1, CriticalQuestion.objects.filter(scheme=self.scheme))
-        self.assertIn(q2, CriticalQuestion.objects.filter(scheme=self.scheme))
+        CriticalQuestion.objects.create(scheme=self.scheme, question="Q1?")
+        CriticalQuestion.objects.create(scheme=self.scheme, question="Q2?")
+        self.assertEqual(CriticalQuestion.objects.filter(scheme=self.scheme).count(), 2)

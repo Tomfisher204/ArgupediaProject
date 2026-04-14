@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from backend.models import ArgumentScheme, SchemeField
-from backend.serializers.critical_question_serializer import CriticalQuestionSerializer
+from backend.serializers import CriticalQuestionSerializer
 
 class SchemeFieldSerializer(serializers.ModelSerializer):
     """Serializes one field in a scheme."""

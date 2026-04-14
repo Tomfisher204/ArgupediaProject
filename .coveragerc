@@ -1,0 +1,6 @@
+[run]
+include =
+    backend/views/*
+    backend/utils/*
+    backend/models/*
+    backend/serializers/*

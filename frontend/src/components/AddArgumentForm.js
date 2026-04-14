@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useCallback} from 'react';
-import {useAuth} from '../context/AuthContext';
+import {useAuth} from '../context';
 import '../css/components/AddArgumentForm.css';
 
 const API = 'http://localhost:8000';
@@ -23,7 +23,7 @@ const formatPreview = (preview) => {
 };
 
 const AddArgumentForm = ({themeId, parentArgumentId = null, parentSchemeId = null, attackingDefault = true, onClose, onSuccess,}) => {
-  const { getValidAccessToken } = useAuth();
+  const {getValidAccessToken} = useAuth();
   const [schemes, setSchemes] = useState([]);
   const [parentCQs, setParentCQs] = useState([]);
   const [selectedScheme, setSelected] = useState(null);
@@ -39,7 +39,7 @@ const AddArgumentForm = ({themeId, parentArgumentId = null, parentSchemeId = nul
     const load = async () => {
       try {
         const token = await getValidAccessToken();
-        const res = await fetch(`${API}/api/schemes/`, {headers: { Authorization: `Bearer ${token}` },});
+        const res = await fetch(`${API}/api/schemes/`, {headers: {Authorization: `Bearer ${token}`}},);
         if (!res.ok) throw new Error('Failed to load schemes.');
         const data = await res.json();
         setSchemes(data);
@@ -67,12 +67,12 @@ const AddArgumentForm = ({themeId, parentArgumentId = null, parentSchemeId = nul
   }, [schemes]);
 
   const handleFieldChange = (fieldName, value) => {
-    setFieldValues((prev) => ({ ...prev, [fieldName]: value }));
+    setFieldValues((prev) => ({...prev, [fieldName]: value}));
   };
 
   const handleSubmit = async () => {
-    if (isResponse && !selectedCQ) { setError('Please select a critical question.'); return; }
-    if (!selectedScheme) { setError('Please select a scheme.'); return; }
+    if (isResponse && !selectedCQ) {setError('Please select a critical question.'); return;}
+    if (!selectedScheme) {setError('Please select a scheme.'); return;}
 
     const fvArray = selectedScheme.fields.map((f) => ({scheme_field_id: f.id, value: fieldValues[f.name] || ''}));
 
@@ -93,7 +93,7 @@ const AddArgumentForm = ({themeId, parentArgumentId = null, parentSchemeId = nul
       const token = await getValidAccessToken();
       const res = await fetch(`${API}/api/arguments/create/`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
@@ -112,8 +112,7 @@ const AddArgumentForm = ({themeId, parentArgumentId = null, parentSchemeId = nul
   };
 
   const preview = selectedScheme
-    ? buildPreview(selectedScheme.template, fieldValues)
-    : null;
+    ? buildPreview(selectedScheme.template, fieldValues): null;
 
   return (
     <div className="form-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -207,7 +206,6 @@ const AddArgumentForm = ({themeId, parentArgumentId = null, parentSchemeId = nul
                   )}
                 </div>
               </div>
-
             </div>
           )}
 

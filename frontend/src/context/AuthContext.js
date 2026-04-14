@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, {createContext, useContext, useState, useEffect, useCallback} from 'react';
 
 const API_BASE='http://localhost:8000';
 const ENDPOINTS={
@@ -101,14 +101,14 @@ export const AuthProvider=({children})=>{
   },[fetchUser,refreshAccessToken]);
 
   useEffect(()=>{
-    if(!user)return;
+    if(!user) return;
     const scheduleRefresh=()=>{
       const {access}=getStoredTokens();
-      if(!access)return;
+      if(!access) return;
       const payload=parseJwt(access);
-      if(!payload?.exp)return;
+      if(!payload?.exp) return;
       const msUntilRefresh=payload.exp*1000-Date.now()-REFRESH_BUFFER_MINUTES*60*1000;
-      if(msUntilRefresh<=0)return;
+      if(msUntilRefresh<=0) return;
       return setTimeout(async()=>{
         try{
           await refreshAccessToken();

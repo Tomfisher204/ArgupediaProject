@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {useAuth} from '../context/AuthContext';
+import {useAuth} from '../context';
 import {AddArgumentForm, Navbar, ConfirmDialog, TrashIcon} from '../components';
 import '../css/pages/ArgumentPage.css';
 
@@ -22,7 +22,7 @@ const formatPreview = (preview) => {
   });
 };
 
-const ChildCard = ({ link, onClick }) => {
+const ChildCard = ({link, onClick}) => {
   const fieldValues = {};
   link.argument.field_values?.forEach((fv) => {
     fieldValues[fv.field_name] = fv.value;
@@ -49,13 +49,12 @@ const ArgumentPage = () => {
   const {getValidAccessToken, user} = useAuth();
   const navigate = useNavigate();
   const [argument, setArgument] = useState(null);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [reported, setReported] = useState(false);
   const [reportCount, setReportCount] = useState(0);
-
   const argumentIds = path ? path.split('/').filter(id => id) : [];
   const currentArgumentId = argumentIds[argumentIds.length - 1];
 
@@ -68,16 +67,12 @@ const ArgumentPage = () => {
         isCurrent: false,
       });
     }
-
     argumentIds.forEach((id, index) => {
       const argPath = argumentIds.slice(0, index + 1).join('/');
       const isCurrent = index === argumentIds.length - 1;
-
-      // Prefer the loaded argument title for the active node.
       const label = (isCurrent && arg)
         ? (arg.scheme_name ? `${arg.scheme_name} (${arg.id})` : `arg ${id}`)
         : `arg ${id}`;
-
       breadcrumbs.push({
         label,
         path: `/arguments/${argPath}`,
@@ -87,19 +82,14 @@ const ArgumentPage = () => {
     return breadcrumbs;
   };
 
-  console.log(argument?.scheme_id);
   const breadcrumbs = buildBreadcrumbs(argument);
 
   const resolveArgumentPath = (targetArgumentId) => {
     const targetId = String(targetArgumentId);
     const existingIndex = argumentIds.indexOf(targetId);
-
     if (existingIndex !== -1) {
-      // If already in the breadcrumb trail, go back to that ancestor/previous location.
       return `/arguments/${argumentIds.slice(0, existingIndex + 1).join('/')}`;
     }
-
-    // Otherwise descend from current node.
     const basePath = argumentIds.join('/');
     return `/arguments/${basePath ? `${basePath}/${targetId}` : targetId}`;
   };
@@ -109,41 +99,38 @@ const ArgumentPage = () => {
     try {
       setLoading(true);
       const token = await getValidAccessToken();
-      const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/`, {headers: {Authorization: `Bearer ${token}`}});
       if (!res.ok) throw new Error('Failed to load argument.');
       const data = await res.json();
       setArgument(data);
       setReported(data.reported);
       setReportCount(data.report_count);
       setError(null);
-    } catch (err) {
+    }
+    catch (err) {
       setError(err.message);
-    } finally {
+    }
+    finally {
       setLoading(false);
     }
   }, [currentArgumentId, getValidAccessToken]);
 
-  const deleteArgument = async () => {
-    setShowConfirm(true);
-  };
+  const deleteArgument = async () => {setShowConfirm(true)};
 
   const toggleReport = async () => {
     try {
       const token = await getValidAccessToken();
-      const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/report/`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/report/`, {method: 'POST', headers: {Authorization: `Bearer ${token}`}});
       if (res.ok) {
         const data = await res.json();
         setReported(data.reported);
         setReportCount(data.report_count);
-      } else {
+      }
+      else {
         setError('Failed to report argument.');
       }
-    } catch (err) {
+    }
+    catch (err) {
       setError(err.message);
     }
   };
@@ -155,7 +142,7 @@ const ArgumentPage = () => {
       ? 'winning'
       : argument.is_winning === false
       ? 'losing'
-      : 'undecided';
+      : 'undecided'; 
   const statusLabel =
     argument.is_winning === true
       ? 'Winning'
@@ -182,10 +169,8 @@ const ArgumentPage = () => {
       </nav>
       <main className="page-main">
         <div className="page-inner">
-
           {loading && <p className="state-msg">Loading…</p>}
           {error   && <p className="state-msg error">{error}</p>}
-
           {!loading && !error && argument && (
             <>
               <div className="argument-body">
@@ -234,7 +219,6 @@ const ArgumentPage = () => {
 
               {(argument.attackers.length > 0 || argument.supporters.length > 0) ? (
                 <div className="children-layout">
-
                   <div className="children-col attackers-col">
                     <div className="col-header attacking">
                       <span className="col-label">Attacking</span>
@@ -252,9 +236,7 @@ const ArgumentPage = () => {
                       ))
                     )}
                   </div>
-
                   <div className="children-divider" />
-
                   <div className="children-col supporters-col">
                     <div className="col-header supporting">
                       <span className="col-label">Supporting</span>
@@ -302,10 +284,7 @@ const ArgumentPage = () => {
           onConfirm={async () => {
             try {
               const token = await getValidAccessToken();
-              const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` },
-              });
+              const res = await fetch(`http://localhost:8000/api/arguments/${currentArgumentId}/`, {method: 'DELETE', headers: {Authorization: `Bearer ${token}`}});
               if (!res.ok) throw new Error('Failed to delete argument.');
               setShowConfirm(false);
               navigate('/dashboard');

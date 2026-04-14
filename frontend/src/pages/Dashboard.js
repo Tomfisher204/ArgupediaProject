@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Navbar } from '../components';
+import React, {useState, useEffect, useCallback} from 'react';
+import {Navigate, useNavigate} from 'react-router-dom';
+import {useAuth} from '../context';
+import {Navbar} from '../components';
 import '../css/pages/Dashboard.css';
 
 const buildPreview = (template, fieldValues) => {
@@ -13,9 +13,9 @@ const buildPreview = (template, fieldValues) => {
 };
 
 const STAT_FIELDS = [
-  { label: 'Arguments made', key: 'argument_count' },
-  { label: 'Reputation', key: 'reputation' , format: (v) => (v != null ? `${v}/10` : null)},
-  { label: 'Win rate', key: 'win_rate', format: (v) => (v != null ? `${v}%` : null) },
+  {label: 'Arguments made', key: 'argument_count'},
+  {label: 'Reputation', key: 'reputation' , format: (v) => (v != null ? `${v}/10` : null)},
+  {label: 'Win rate', key: 'win_rate', format: (v) => (v != null ? `${v}%` : null)},
 ];
 
 const fmt = (value, format) => {
@@ -24,20 +24,17 @@ const fmt = (value, format) => {
 };
 
 const Dashboard = () => {
-  const { user, loading, getValidAccessToken } = useAuth();
+  const {user, loading, getValidAccessToken} = useAuth();
   const navigate = useNavigate();
   const [userArguments, setUserArguments] = useState([]);
   const [argumentsLoading, setArgumentsLoading] = useState(true);
   const [pagination, setPagination] = useState(null);
-  
   const fetchUserArguments = useCallback(async (page = 1) => {
     if (!user) return;
     try {
       setArgumentsLoading(true);
       const token = await getValidAccessToken();
-      const response = await fetch(`http://localhost:8000/api/user/arguments/?page=${page}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(`http://localhost:8000/api/user/arguments/?page=${page}`, {headers: {Authorization: `Bearer ${token}`}});
       if (response.ok) {
         const data = await response.json();
         setUserArguments(data.results);
@@ -85,7 +82,7 @@ const Dashboard = () => {
           <section className="stats-section">
             <h2 className="section-heading">Your stats</h2>
             <div className="stats-grid">
-              {STAT_FIELDS.map(({ label, key, format }) => (
+              {STAT_FIELDS.map(({label, key, format}) => (
                 <div key={key} className="stat-card">
                   <span className="stat-value">{fmt(user[key], format)}</span>
                   <span className="stat-label">{label}</span>
@@ -96,12 +93,8 @@ const Dashboard = () => {
 
           <section className="arguments-section">
             <h2 className="section-heading">Your arguments</h2>
-            {argumentsLoading ? (
-              <p className="loading-text">Loading your arguments...</p>
-            ) : userArguments.length === 0 ? (
-              <p className="placeholder-text">
-                You haven't created any arguments yet. Visit the Themes page to get started!
-              </p>
+            {argumentsLoading ? (<p className="loading-text">Loading your arguments...</p>
+            ) : userArguments.length === 0 ? (<p className="placeholder-text"> You haven't created any arguments yet. Visit the Themes page to get started!</p>
             ) : (
               <>
                 <div className="arguments-list">
@@ -156,21 +149,13 @@ const Dashboard = () => {
 
                 {pagination && pagination.totalPages > 1 && (
                   <div className="pagination">
-                    <button
-                      className="pagination-btn"
-                      onClick={() => fetchUserArguments(pagination.currentPage - 1)}
-                      disabled={!pagination.previous}
-                    >
+                    <button className="pagination-btn" onClick={() => fetchUserArguments(pagination.currentPage - 1)} disabled={!pagination.previous}>
                       Previous
                     </button>
                     <span className="pagination-info">
                       Page {pagination.currentPage} of {pagination.totalPages}
                     </span>
-                    <button
-                      className="pagination-btn"
-                      onClick={() => fetchUserArguments(pagination.currentPage + 1)}
-                      disabled={!pagination.next}
-                    >
+                    <button className="pagination-btn" onClick={() => fetchUserArguments(pagination.currentPage + 1)} disabled={!pagination.next}>
                       Next
                     </button>
                   </div>

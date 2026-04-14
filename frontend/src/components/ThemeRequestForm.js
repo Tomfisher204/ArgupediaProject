@@ -1,30 +1,30 @@
 import React, {useState} from 'react';
-import {useAuth} from '../context/AuthContext';
+import {useAuth} from '../context';
 import '../css/components/ThemeRequestForm.css';
 
 const API = 'http://localhost:8000';
 
-const ThemeRequestForm = ({ onClose, onSuccess }) => {
-  const { getValidAccessToken } = useAuth();
-  const [form, setForm] = useState({ title: '', description: '', reason: '' });
+const ThemeRequestForm = ({onClose, onSuccess}) => {
+  const {getValidAccessToken} = useAuth();
+  const [form, setForm] = useState({title: '', description: '', reason: ''});
   const [submitting, setSubmit] = useState(false);
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    setForm((f) => ({...f, [e.target.name]: e.target.value}));
     setError(null);
   };
 
   const handleSubmit = async () => {
-    if (!form.title.trim())  { setError('Title is required.'); return; }
-    if (!form.reason.trim()) { setError('Please explain why this theme should be added.'); return; }
+    if (!form.title.trim())  {setError('Title is required.'); return;}
+    if (!form.reason.trim()) {setError('Please explain why this theme should be added.'); return;}
 
     setSubmit(true);
     try {
       const token = await getValidAccessToken();
       const res = await fetch(`${API}/api/theme-requests/`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
         body: JSON.stringify(form),
       });
       if (!res.ok) {
@@ -32,9 +32,11 @@ const ThemeRequestForm = ({ onClose, onSuccess }) => {
         throw new Error(data?.title?.[0] ?? data?.reason?.[0] ?? 'Submission failed.');
       }
       onSuccess();
-    } catch (err) {
+    }
+    catch (err) {
       setError(err.message);
-    } finally {
+    }
+    finally {
       setSubmit(false);
     }
   };
@@ -50,7 +52,7 @@ const ThemeRequestForm = ({ onClose, onSuccess }) => {
 
         <div className="form-body">
           <p className="request-intro">
-            Don't see a theme that fits your argument? Request one — admins will review it.
+            Don't see a theme that fits your argument? Request one!
           </p>
 
           <div className="form-field">

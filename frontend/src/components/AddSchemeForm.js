@@ -1,29 +1,28 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import React, {useState} from 'react';
+import {useAuth} from '../context';
 
 const API = 'http://localhost:8000';
 
-const AddSchemeForm = ({ onClose, onSuccess }) => {
-  const { getValidAccessToken } = useAuth();
-  const [form, setForm] = useState({ name: '', description: '', template: '' });
+const AddSchemeForm = ({onClose, onSuccess}) => {
+  const {getValidAccessToken} = useAuth();
+  const [form, setForm] = useState({name: '', description: '', template: ''});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    setForm((f) => ({...f, [e.target.name]: e.target.value}));
     setError(null);
   };
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) { setError('Name is required.'); return; }
-    if (!form.template.trim()) { setError('Template is required.'); return; }
-
+    if (!form.name.trim()) {setError('Name is required.'); return;}
+    if (!form.template.trim()) {setError('Template is required.'); return;}
     setSubmitting(true);
     try {
       const token = await getValidAccessToken();
       const res = await fetch(`${API}/api/admin/schemes/`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
         body: JSON.stringify(form),
       });
       if (!res.ok) {
@@ -31,9 +30,11 @@ const AddSchemeForm = ({ onClose, onSuccess }) => {
         throw new Error(data?.name?.[0] ?? data?.template?.[0] ?? 'Failed to create scheme.');
       }
       onSuccess();
-    } catch (err) {
+    }
+    catch (err) {
       setError(err.message);
-    } finally {
+    }
+    finally {
       setSubmitting(false);
     }
   };
@@ -79,7 +80,6 @@ const AddSchemeForm = ({ onClose, onSuccess }) => {
             placeholder="Template with **field** placeholders..."
           />
         </div>
-
         {error && <p className="form-error">{error}</p>}
       </div>
 

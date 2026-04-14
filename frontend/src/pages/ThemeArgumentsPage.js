@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {useAuth} from '../context/AuthContext';
-import { AddArgumentForm, Navbar } from '../components';
+import {useAuth} from '../context';
+import {AddArgumentForm, Navbar} from '../components';
 import '../css/pages/ThemeArgumentsPage.css';
 
 const buildPreview = (template, fieldValues) => {
@@ -12,23 +12,13 @@ const buildPreview = (template, fieldValues) => {
   });
 };
 
-const formatPreview = (preview) => {
-  if (!preview) return null;
-  return preview.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={index}>{part.slice(2, -2)}</strong>;
-    }
-    return part;
-  });
-};
-
-const ArgumentCard = ({ argument, onClick }) => {
+const ArgumentCard = ({argument, onClick}) => {
   const fieldValues = {};
   argument.field_values?.forEach(field => {
     fieldValues[field.field_name] = field.value;
   });
   const preview = buildPreview(argument.scheme_template, fieldValues);
-  const title = preview ? formatPreview(preview) : (argument.field_values?.[0]?.value ?? '(no title)');
+  const title = preview ? preview : (argument.field_values?.[0]?.value ?? '(no title)');
   return (
     <button className="arg-card" onClick={onClick}>
       <div className="arg-card-meta">
@@ -59,14 +49,16 @@ const ThemeArgumentsPage = () => {
       setLoading(true);
       const token = await getValidAccessToken();
       const res = await fetch(`http://localhost:8000/api/themes/${themeId}/arguments/`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {Authorization: `Bearer ${token}`},
       });
       if (!res.ok) throw new Error('Failed to load arguments.');
       setData(await res.json());
       setError(null);
-    } catch (err) {
+    }
+    catch (err) {
       setError(err.message);
-    } finally {
+    }
+    finally {
       setLoading(false);
     }
   }, [themeId, getValidAccessToken]);

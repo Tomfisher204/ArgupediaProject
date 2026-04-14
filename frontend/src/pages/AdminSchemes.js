@@ -1,9 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Navbar } from '../components';
-import ConfirmDialog from '../components/ConfirmDialog';
-import TrashIcon from '../components/TrashIcon';
-import AddSchemeForm from '../components/AddSchemeForm';
-import AddCriticalQuestionForm from '../components/AddCriticalQuestionForm';
+import React, {useState, useEffect} from 'react';
+import {Navbar, ConfirmDialog, TrashIcon, AddSchemeForm, AddCriticalQuestionForm} from '../components';
 import '../css/pages/AdminSchemes.css';
 
 const AdminSchemes = () => {
@@ -11,16 +7,14 @@ const AdminSchemes = () => {
   const [loading, setLoading] = useState(true);
   const [showSchemeForm, setShowSchemeForm] = useState(false);
   const [showCQForm, setShowCQForm] = useState(null);
-  const [confirmDialog, setConfirmDialog] = useState({ show: false, message: '', onConfirm: null });
+  const [confirmDialog, setConfirmDialog] = useState({show: false, message: '', onConfirm: null});
 
-  useEffect(() => {
-    fetchSchemes();
-  }, []);
+  useEffect(() => {fetchSchemes()}, []);
 
   const fetchSchemes = async () => {
     const token = localStorage.getItem('access_token');
     const res = await fetch('http://localhost:8000/api/admin/schemes/', {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {Authorization: `Bearer ${token}`},
     });
     if (res.ok) {
       const data = await res.json();
@@ -37,12 +31,12 @@ const AdminSchemes = () => {
         const token = localStorage.getItem('access_token');
         const res = await fetch(`http://localhost:8000/api/admin/schemes/${schemeId}/`, {
           method: 'DELETE',
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {Authorization: `Bearer ${token}`},
         });
         if (res.ok) {
           fetchSchemes();
         }
-        setConfirmDialog({ show: false, message: '', onConfirm: null });
+        setConfirmDialog({show: false, message: '', onConfirm: null});
       }
     });
   };
@@ -55,18 +49,16 @@ const AdminSchemes = () => {
         const token = localStorage.getItem('access_token');
         const res = await fetch(`http://localhost:8000/api/admin/critical-questions/${cqId}/`, {
           method: 'DELETE',
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {Authorization: `Bearer ${token}`},
         });
-        if (res.ok) {
-          fetchSchemes();
-        }
-        setConfirmDialog({ show: false, message: '', onConfirm: null });
+        if (res.ok) {fetchSchemes()}
+        setConfirmDialog({show: false, message: '', onConfirm: null});
       }
     });
   };
 
   const handleCancelConfirm = () => {
-    setConfirmDialog({ show: false, message: '', onConfirm: null });
+    setConfirmDialog({show: false, message: '', onConfirm: null});
   };
 
   return (
@@ -112,12 +104,7 @@ const AdminSchemes = () => {
                         </div>
                       ))}
                     </div>
-                    <button
-                      className="btn-secondary"
-                      onClick={() => {
-                        setShowCQForm(scheme.id);
-                      }}
-                    >
+                    <button className="btn-secondary" onClick={() => {setShowCQForm(scheme.id)}}>
                       Add Critical Question
                     </button>
                   </div>
@@ -133,13 +120,7 @@ const AdminSchemes = () => {
                   <h2 className="modal-title">Add New Scheme</h2>
                   <button className="modal-close" onClick={() => setShowSchemeForm(false)}>✕</button>
                 </div>
-                <AddSchemeForm
-                  onClose={() => setShowSchemeForm(false)}
-                  onSuccess={() => {
-                    setShowSchemeForm(false);
-                    fetchSchemes();
-                  }}
-                />
+                <AddSchemeForm onClose={() => setShowSchemeForm(false)} onSuccess={() => {setShowSchemeForm(false); fetchSchemes()}}/>
               </div>
             </div>
           )}
@@ -151,14 +132,7 @@ const AdminSchemes = () => {
                   <h2 className="modal-title">Add Critical Question</h2>
                   <button className="modal-close" onClick={() => setShowCQForm(null)}>✕</button>
                 </div>
-                <AddCriticalQuestionForm
-                  schemeId={showCQForm}
-                  onClose={() => setShowCQForm(null)}
-                  onSuccess={() => {
-                    setShowCQForm(null);
-                    fetchSchemes();
-                  }}
-                />
+                <AddCriticalQuestionForm schemeId={showCQForm} onClose={() => setShowCQForm(null)} onSuccess={() => {setShowCQForm(null); fetchSchemes();}}/>
               </div>
             </div>
           )}
@@ -166,11 +140,7 @@ const AdminSchemes = () => {
       </main>
 
       {confirmDialog.show && (
-        <ConfirmDialog
-          message={confirmDialog.message}
-          onConfirm={confirmDialog.onConfirm}
-          onCancel={handleCancelConfirm}
-        />
+        <ConfirmDialog message={confirmDialog.message} onConfirm={confirmDialog.onConfirm} onCancel={handleCancelConfirm}/>
       )}
     </div>
   );

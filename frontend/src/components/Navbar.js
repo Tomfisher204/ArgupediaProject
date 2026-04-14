@@ -6,13 +6,13 @@ import '../css/components/Navbar.css';
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, user } = useAuth();
+  const {logout, user} = useAuth();
   const isActive = (path) => location.pathname === path;
 
   return (
     <header className="page-header">
       <div className="page-header-inner">
-        <div className="header-logo" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}>
+        <div className="header-logo" onClick={() => navigate('/dashboard')} style={{cursor: 'pointer'}}>
           <span className="logo-mark-sm">A</span>
           <span className="logo-text-sm">argupedia</span>
         </div>

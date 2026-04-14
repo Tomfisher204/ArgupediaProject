@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React, {useState} from 'react';
+import {Navigate} from 'react-router-dom';
+import {useAuth} from '../context';
 import '../css/pages/LandingPage.css';
 
 const FEATURES = [
@@ -12,7 +12,7 @@ const FEATURES = [
 const LandingPage = () => {
   const {user, loading, error, login, signup} = useAuth();
   const [mode, setMode] = useState('login');
-  const [form, setForm] = useState({ username: '', email: '', password: '', first_name: '', last_name: '' });
+  const [form, setForm] = useState({username: '', email: '', password: '', first_name: '', last_name: ''});
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState(null);
 
@@ -20,7 +20,7 @@ const LandingPage = () => {
   if (user) return <Navigate to="/dashboard" replace />;
 
   const handleChange = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    setForm((f) => ({...f, [e.target.name]: e.target.value}));
     setFormError(null);
   };
 
@@ -46,7 +46,7 @@ const LandingPage = () => {
   const switchMode = (next) => {
     setMode(next);
     setFormError(null);
-    setForm({ username: '', email: '', password: '' , first_name: '', last_name: ''});
+    setForm({username: '', email: '', password: '' , first_name: '', last_name: ''});
   };
 
   return (

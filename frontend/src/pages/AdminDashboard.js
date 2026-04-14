@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Navbar } from '../components';
+import React, {useState, useEffect, useCallback} from 'react';
+import {Navigate, useNavigate} from 'react-router-dom';
+import {useAuth} from '../context/AuthContext';
+import {Navbar} from '../components';
 import '../css/pages/AdminDashboard.css';
 
 const buildPreview = (template, fieldValues) => {
@@ -12,25 +12,15 @@ const buildPreview = (template, fieldValues) => {
   });
 };
 
-const formatPreview = (preview) => {
-  if (!preview) return null;
-  return preview.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={index}>{part.slice(2, -2)}</strong>;
-    }
-    return part;
-  });
-};
-
 const ADMIN_STAT_FIELDS = [
-  { label: 'Total Users', key: 'total_users' },
-  { label: 'Total Arguments', key: 'total_arguments' },
-  { label: 'Total Themes', key: 'total_themes' },
-  { label: 'Pending Theme Requests', key: 'pending_theme_requests' },
+  {label: 'Total Users', key: 'total_users'},
+  {label: 'Total Arguments', key: 'total_arguments'},
+  {label: 'Total Themes', key: 'total_themes'},
+  {label: 'Pending Theme Requests', key: 'pending_theme_requests'},
 ];
 
 const AdminDashboard = () => {
-  const { user, loading, getValidAccessToken } = useAuth();
+  const {user, loading, getValidAccessToken} = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState({});
   const [themeRequests, setThemeRequests] = useState([]);
@@ -43,7 +33,7 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     const token = await getValidAccessToken();
-    const res = await fetch('http://localhost:8000/api/admin/stats/', {headers: { Authorization: `Bearer ${token}` }});
+    const res = await fetch('http://localhost:8000/api/admin/stats/', {headers: {Authorization: `Bearer ${token}`}});
     if (res.ok) {
       const data = await res.json();
       setStats(data);
@@ -56,7 +46,7 @@ const AdminDashboard = () => {
       setRequestsLoading(true);
       const token = await getValidAccessToken();
       const response = await fetch(`http://localhost:8000/api/admin/theme-requests/?page=${page}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {Authorization: `Bearer ${token}`},
       });
       if (response.ok) {
         const data = await response.json();
@@ -78,7 +68,7 @@ const AdminDashboard = () => {
       setReportedLoading(true);
       const token = await getValidAccessToken();
       const response = await fetch(`http://localhost:8000/api/admin/reported-arguments/?page=${page}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {Authorization: `Bearer ${token}`},
       });
       if (response.ok) {
         const data = await response.json();
@@ -98,12 +88,11 @@ const AdminDashboard = () => {
 
   useEffect(() => {fetchReportedArgs()}, [fetchReportedArgs]);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  useEffect(() => {fetchStats()}, []);
+
   const handleApproveReject = async (requestId, action) => {
     const token = await getValidAccessToken();
-    const res = await fetch('http://localhost:8000/api/admin/theme-requests/', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: `Bearer ${token}`}, body: JSON.stringify({ request_id: requestId, action })});
+    const res = await fetch('http://localhost:8000/api/admin/theme-requests/', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: `Bearer ${token}`}, body: JSON.stringify({request_id: requestId, action})});
     if (res.ok) {
       fetchThemeRequests(pagination?.currentPage || 1);
       fetchStats();
@@ -121,7 +110,6 @@ const AdminDashboard = () => {
       <main className="dash-main">
         <div className="dash-inner">
 
-          {/* Admin header */}
           <section className="admin-header">
             <h1>Admin Dashboard</h1>
           </section>
@@ -129,7 +117,7 @@ const AdminDashboard = () => {
           <section className="stats-section">
             <h2 className="section-heading">Statistics</h2>
             <div className="stats-grid">
-              {ADMIN_STAT_FIELDS.map(({ label, key }) => (
+              {ADMIN_STAT_FIELDS.map(({label, key}) => (
                 <div key={key} className="stat-card">
                   <span className="stat-value">{stats[key] || 0}</span>
                   <span className="stat-label">{label}</span>
@@ -138,13 +126,10 @@ const AdminDashboard = () => {
             </div>
           </section>
 
-          {/* Theme requests */}
           <section className="theme-requests-section">
             <h2 className="section-heading">Pending Theme Requests</h2>
-            {requestsLoading ? (
-              <p className="loading-text">Loading pending theme requests...</p>
-            ) : themeRequests.length === 0 ? (
-              <p className="placeholder-text">No pending theme requests at the moment.</p>
+            {requestsLoading ? (<p className="loading-text">Loading pending theme requests...</p>
+            ) : themeRequests.length === 0 ? (<p className="placeholder-text">No pending theme requests at the moment.</p>
             ) : (
               <>
                 <div className="theme-requests-list">
@@ -160,21 +145,13 @@ const AdminDashboard = () => {
 
                 {pagination && pagination.totalPages > 1 && (
                   <div className="pagination">
-                    <button
-                      className="pagination-btn"
-                      onClick={() => fetchThemeRequests(pagination.currentPage - 1)}
-                      disabled={!pagination.previous}
-                    >
+                    <button className="pagination-btn" onClick={() => fetchThemeRequests(pagination.currentPage - 1)} disabled={!pagination.previous}>
                       Previous
                     </button>
                     <span className="pagination-info">
                       Page {pagination.currentPage} of {pagination.totalPages}
                     </span>
-                    <button
-                      className="pagination-btn"
-                      onClick={() => fetchThemeRequests(pagination.currentPage + 1)}
-                      disabled={!pagination.next}
-                    >
+                    <button className="pagination-btn" onClick={() => fetchThemeRequests(pagination.currentPage + 1)} disabled={!pagination.next}>
                       Next
                     </button>
                   </div>
@@ -183,35 +160,25 @@ const AdminDashboard = () => {
             )}
           </section>
 
-          {/* Reported arguments */}
           <section className="reported-arguments-section">
             <h2 className="section-heading">Reported Arguments</h2>
-            {reportedLoading ? (
-              <p className="loading-text">Loading reported arguments...</p>
-            ) : reportedArgs.length === 0 ? (
-              <p className="placeholder-text">No reported arguments at the moment.</p>
+            {reportedLoading ? (<p className="loading-text">Loading reported arguments...</p>
+            ) : reportedArgs.length === 0 ? (<p className="placeholder-text">No reported arguments at the moment.</p>
             ) : (
               <>
                 <div className="reported-arguments-list">
                   {reportedArgs.map((arg) => {
                     const fieldValues = {};
-                    arg.field_values.forEach((fv) => {
-                      fieldValues[fv.field_name] = fv.value;
-                    });
+                    arg.field_values.forEach((fv) => {fieldValues[fv.field_name] = fv.value});
                     const preview = buildPreview(arg.scheme_template, fieldValues);
                     return (
-                      <div
-                        key={arg.id}
-                        className="reported-card"
-                        onClick={() => navigate(`/arguments/${arg.id}`)}
-                      >
+                      <div key={arg.id} className="reported-card" onClick={() => navigate(`/arguments/${arg.id}`)}>
                         <div className="reported-header">
                           <span className="reported-scheme">{arg.scheme_name}</span>
                           <span className="reported-reports">{arg.report_count} reports</span>
                         </div>
                         <div className="reported-content">
-                          {preview ? (
-                            <div className="reported-preview">{formatPreview(preview)}</div>
+                          {preview ? (<div className="reported-preview">{preview}</div>
                           ) : (
                             arg.field_values.map((fv, i) => (
                               <div key={i} className="reported-field">
@@ -228,24 +195,15 @@ const AdminDashboard = () => {
                     );
                   })}
                 </div>
-
                 {reportedPagination && reportedPagination.totalPages > 1 && (
                   <div className="pagination">
-                    <button
-                      className="pagination-btn"
-                      onClick={() => fetchReportedArgs(reportedPagination.currentPage - 1)}
-                      disabled={!reportedPagination.previous}
-                    >
+                    <button className="pagination-btn" onClick={() => fetchReportedArgs(reportedPagination.currentPage - 1)} disabled={!reportedPagination.previous}>
                       Previous
                     </button>
                     <span className="pagination-info">
                       Page {reportedPagination.currentPage} of {reportedPagination.totalPages}
                     </span>
-                    <button
-                      className="pagination-btn"
-                      onClick={() => fetchReportedArgs(reportedPagination.currentPage + 1)}
-                      disabled={!reportedPagination.next}
-                    >
+                    <button className="pagination-btn" onClick={() => fetchReportedArgs(reportedPagination.currentPage + 1)} disabled={!reportedPagination.next}>
                       Next
                     </button>
                   </div>
@@ -269,8 +227,8 @@ const AdminDashboard = () => {
                   <p><strong>Date:</strong> {new Date(selectedRequest.date_created).toLocaleDateString()}</p>
                   {selectedRequest.status === 'pending' && (
                     <div className="modal-actions">
-                      <button onClick={() => { handleApproveReject(selectedRequest.id, 'approve'); setSelectedRequest(null); }}>Approve</button>
-                      <button onClick={() => { handleApproveReject(selectedRequest.id, 'reject'); setSelectedRequest(null); }}>Reject</button>
+                      <button onClick={() => {handleApproveReject(selectedRequest.id, 'approve'); setSelectedRequest(null)}}>Approve</button>
+                      <button onClick={() => {handleApproveReject(selectedRequest.id, 'reject'); setSelectedRequest(null)}}>Reject</button>
                     </div>
                   )}
                 </div>

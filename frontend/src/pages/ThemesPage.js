@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {useAuth} from '../context/AuthContext';
-import { ThemeRequestForm, Navbar, ConfirmDialog, TrashIcon } from '../components';
+import {useAuth} from '../context';
+import {ThemeRequestForm, Navbar, ConfirmDialog, TrashIcon} from '../components';
 import '../css/pages/ThemesPage.css';
 
 const ThemesPage = () => {
@@ -24,8 +24,7 @@ const ThemesPage = () => {
       let url = `http://localhost:8000/api/themes/?page=${page}`;
       if (query) url += `&q=${encodeURIComponent(query)}`;
       if (sortBy) url += `&sort=${encodeURIComponent(sortBy)}`;
-
-      const res = await fetch(url, {headers: { Authorization: `Bearer ${token}` }});
+      const res = await fetch(url, {headers: {Authorization: `Bearer ${token}`}});
       if (!res.ok) throw new Error("Failed to load themes.");
       const data = await res.json();
       setThemes(data.results);
@@ -52,16 +51,15 @@ const ThemesPage = () => {
     setShowConfirm(false);
     try {
       const token = await getValidAccessToken();
-      const res = await fetch(`http://localhost:8000/api/admin/theme/${confirmThemeId}/`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(`http://localhost:8000/api/admin/theme/${confirmThemeId}/`, {method: 'DELETE', headers: {Authorization: `Bearer ${token}`}});
       if (res.ok) {
         fetchThemes();
-      } else {
+      }
+      else {
         setError('Failed to delete theme.');
       }
-    } catch (err) {
+    }
+    catch (err) {
       setError(err.message);
     }
     setConfirmThemeId(null);
@@ -78,24 +76,14 @@ const ThemesPage = () => {
           </div>
 
           <div className="theme-filters">
-            <input
-              className="theme-search"
-              type="text"
-              placeholder="Search themes..."
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); fetchThemes(1, e.target.value, sort); }}
-            />
-            <select
-              className="theme-sort"
-              value={sort}
-              onChange={(e) => { setSort(e.target.value); fetchThemes(1, search, e.target.value); }}
-            >
-              <option value="alpha_asc">Alphabetical ↑</option>
-              <option value="alpha_desc">Alphabetical ↓</option>
-              <option value="date_desc">Date created (newest)</option>
-              <option value="date_asc">Date created (oldest)</option>
-              <option value="arg_size_desc">Arg count ↓</option>
-              <option value="arg_size_asc">Arg count ↑</option>
+            <input className="theme-search" type="text" placeholder="Search themes..." value={search} onChange={(e) => {setSearch(e.target.value); fetchThemes(1, e.target.value, sort)}}/>
+            <select className="theme-sort" value={sort} onChange={(e) => {setSort(e.target.value); fetchThemes(1, search, e.target.value)}}>
+              <option value="alpha_asc">Alphabetical (A-Z)</option>
+              <option value="alpha_desc">Alphabetical (Z-A)</option>
+              <option value="date_desc">Newest</option>
+              <option value="date_asc">Oldest</option>
+              <option value="arg_size_desc">Most Arguments</option>
+              <option value="arg_size_asc">Least Arguments</option>
             </select>
           </div>
 
@@ -105,10 +93,7 @@ const ThemesPage = () => {
 
           {loading && <p className="state-msg">Loading themes…</p>}
           {error && <p className="state-msg error">{error}</p>}
-
-          {!loading && !error && themes.length === 0 && (
-            <p className="state-msg">No themes yet.</p>
-          )}
+          {!loading && !error && themes.length === 0 && (<p className="state-msg">No themes yet.</p>)}
 
           {!loading && !error && (
             <>
@@ -125,7 +110,7 @@ const ThemesPage = () => {
                       </p>
                     </button>
                     {user?.is_admin && (
-                      <button className="btn-delete-theme" onClick={(e) => { e.stopPropagation(); deleteTheme(theme.id); }}>
+                      <button className="btn-delete-theme" onClick={(e) => {e.stopPropagation(); deleteTheme(theme.id)}}>
                         <TrashIcon />
                       </button>
                     )}
@@ -163,7 +148,7 @@ const ThemesPage = () => {
         <ConfirmDialog
           message="Are you sure you want to delete this theme?"
           onConfirm={confirmDeleteTheme}
-          onCancel={() => { setShowConfirm(false); setConfirmThemeId(null); }}
+          onCancel={() => {setShowConfirm(false); setConfirmThemeId(null)}}
         />
       )}
     </div>

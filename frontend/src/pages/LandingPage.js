@@ -4,9 +4,9 @@ import {useAuth} from '../context';
 import '../css/pages/LandingPage.css';
 
 const FEATURES = [
-  {title: 'Structured arguments', desc: 'Arguments follow an argumentation scheme of your choice. Premises, conclusions, evidence all clearly defined.'},
-  {title: 'Limited Bias', desc: 'Critical questions force you to counter the argument not just disagree with it.'},
-  {title: 'Quality over Quantity', desc: 'Focus on building strong, well-reasoned arguments rather than numerous weak ones.'},
+  {title: 'Schemes', desc: 'Arguments follow a scheme of your choice, simplifying the argumentation process.'},
+  {title: 'Critical Questions', desc: 'Critical questions encourage you to counter the argument not just disagree with it.'},
+  {title: 'Argument Evaluation', desc: 'Arguments are evaluated in real time using a graph evaluation algorithm.'},
 ];
 
 const LandingPage = () => {

@@ -4,7 +4,7 @@ import {useAuth} from '../context';
 import {ThemeRequestForm, Navbar, ConfirmDialog, TrashIcon} from '../components';
 import '../css/pages/ThemesPage.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = 'http://localhost:8000';
 
 const ThemesPage = () => {
   const {getValidAccessToken, user} = useAuth();

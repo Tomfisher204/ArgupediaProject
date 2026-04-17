@@ -1,10 +1,10 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import {Navigate, useNavigate} from 'react-router-dom';
-import {useAuth} from '../context/AuthContext';
+import {useAuth} from '../context';
 import {Navbar} from '../components';
 import '../css/pages/AdminDashboard.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = 'http://localhost:8000';
 
 const buildPreview = (template, fieldValues) => {
   if (!template) return null;
@@ -34,11 +34,15 @@ const AdminDashboard = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
 
   const fetchStats = useCallback(async () => {
-    const token = await getValidAccessToken();
-    const res = await fetch(`${API}/api/admin/stats/`, {headers: {Authorization: `Bearer ${token}`}});
-    if (res.ok) {
+    try {
+      const token = await getValidAccessToken();
+      const res = await fetch(`${API}/api/admin/stats/`, {headers: {Authorization: `Bearer ${token}`}});
+      if (!res || !res.ok) return;
       const data = await res.json();
       setStats(data);
+    }
+    catch (err) {
+      console.error('fetchStats failed:', err);
     }
   }, [getValidAccessToken]);
 

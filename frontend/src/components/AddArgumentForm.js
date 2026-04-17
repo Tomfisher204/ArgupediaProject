@@ -2,7 +2,7 @@ import React, {useEffect, useState, useCallback} from 'react';
 import {useAuth} from '../context';
 import '../css/components/AddArgumentForm.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = 'http://localhost:8000';
 
 const buildPreview = (template, fieldValues) => {
   if (!template) return null;
@@ -126,12 +126,12 @@ const AddArgumentForm = ({themeId, parentArgumentId = null, parentSchemeId = nul
         <div className="form-body">
           {isResponse && (
             <div className="form-field">
-              <label className="form-label">Critical question</label>
+              <label className="form-label" htmlFor="cq-select">Critical question</label>
               {loadingSchemes ? (<p className="hint">Loading…</p>
               ) : parentCQs.length === 0 ? (
                 <p className="hint">No critical questions found for the parent argument's scheme.</p>
               ) : (
-                <select className="form-select" value={selectedCQ} onChange={(e) => setSelectedCQ(e.target.value)}>
+                <select id="cq-select" className="form-select" value={selectedCQ} onChange={(e) => setSelectedCQ(e.target.value)}>
                   <option value="">Select a critical question…</option>
                   {parentCQs.map((cq) => (
                     <option key={cq.id} value={cq.id}>{cq.question}</option>
@@ -154,13 +154,13 @@ const AddArgumentForm = ({themeId, parentArgumentId = null, parentSchemeId = nul
             </div>
           )}
           <div className="form-field">
-            <label className="form-label">
+            <label className="form-label" htmlFor="scheme-select">
               {isResponse ? 'Scheme for your response' : 'Argument scheme'}
             </label>
             {loadingSchemes ? (
               <p className="hint">Loading schemes…</p>
             ) : (
-              <select className="form-select" value={selectedScheme?.id ?? ''} onChange={(e) => handleSchemeChange(e.target.value)}>
+              <select id="scheme-select" className="form-select" value={selectedScheme?.id ?? ''} onChange={(e) => handleSchemeChange(e.target.value)}>
                 <option value="">Select a scheme…</option>
                 {schemes.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -178,8 +178,8 @@ const AddArgumentForm = ({themeId, parentArgumentId = null, parentSchemeId = nul
                 <p className="col-heading">Fill in the fields</p>
                 {selectedScheme.fields.map((field) => (
                   <div key={field.id} className="form-field">
-                    <label className="form-label">{field.name}</label>
-                    <textarea className="form-textarea" rows={2} value={fieldValues[field.name] || ''} onChange={(e) => handleFieldChange(field.name, e.target.value)} placeholder={`Enter ${field.name}…`}/>
+                    <label className="form-label" htmlFor={`field-${field.id}`}>{field.name}</label>
+                    <textarea id={`field-${field.id}`} className="form-textarea" rows={2} value={fieldValues[field.name] || ''} onChange={(e) => handleFieldChange(field.name, e.target.value)} placeholder={`Enter ${field.name}…`}/>
                   </div>
                 ))}
               </div>

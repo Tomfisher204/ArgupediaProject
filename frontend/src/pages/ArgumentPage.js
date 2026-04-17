@@ -4,7 +4,7 @@ import {useAuth} from '../context';
 import {AddArgumentForm, Navbar, ConfirmDialog, TrashIcon} from '../components';
 import '../css/pages/ArgumentPage.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = 'http://localhost:8000';
 
 const buildPreview = (template, fieldValues) => {
   if (!template) return null;

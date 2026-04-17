@@ -5,10 +5,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-=iv+9_)nsaw!pfv0(7k_qp7=w!$taa+6r3dc*=a7xtau$#4_4&'
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
-    "TomFish200.pythonanywhere.com",
+    "localhost",
+    "127.0.0.1",
 ]
 
 INSTALLED_APPS = [
@@ -18,13 +19,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'rest_framework',
     'rest_framework_simplejwt',
+
     'corsheaders',
+
     'backend',
 ]
 
-# Tell Django to use your custom User model
 AUTH_USER_MODEL = 'backend.User'
 
 REST_FRAMEWORK = {
@@ -34,12 +37,14 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=30),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS':  True,
+
+    # safer for debugging auth issues
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': False,
 }
 
-# CorsMiddleware must be as high as possible — before CommonMiddleware
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -53,10 +58,13 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://TomFish200.pythonanywhere.com",
+    "http://127.0.0.1:3000",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Optional but helpful during debugging
+CORS_ALLOW_ALL_HEADERS = True
 
 ROOT_URLCONF = 'argupedia.urls'
 
@@ -93,6 +101,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
+
 USE_I18N = True
 USE_TZ = True
 

@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {useAuth} from '../context';
 
-const API = process.env.REACT_APP_API_URL;
+const API = 'http://localhost:8000';
 
 const AddCriticalQuestionForm = ({schemeId, onClose, onSuccess}) => {
   const {getValidAccessToken} = useAuth();
@@ -79,10 +79,8 @@ const AddCriticalQuestionForm = ({schemeId, onClose, onSuccess}) => {
         </div>
 
         <div className="form-field">
-          <label className="form-label" htmlFor="cq-two_way">
-            Is it two-way?
-          </label>
           <label className="form-checkbox">
+            Is it two-way?
             <input
               type="checkbox"
               name="two_way"

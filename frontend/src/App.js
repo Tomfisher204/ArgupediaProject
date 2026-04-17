@@ -5,19 +5,19 @@ import {LandingPage, Dashboard, AdminDashboard, AdminSchemes, ThemesPage, ThemeA
 import './css/App.css';
 
 const PublicRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const {user, loading} = useAuth();
   if (loading) return null;
   return user ? <Navigate to="/dashboard" replace /> : children;
 };
 
 const PrivateRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const {user, loading} = useAuth();
   if (loading) return null;
   return user ? children : <Navigate to="/" replace />;
 };
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const {user} = useAuth();
   const isAdmin = user?.is_admin;
 
   return (
@@ -36,7 +36,7 @@ const AppRoutes = () => {
 
 const App = () => (
   <AuthProvider>
-    <Router>
+    <Router future={{v7_startTransition: true, v7_relativeSplatPath: true}}>
       <AppRoutes />
     </Router>
   </AuthProvider>

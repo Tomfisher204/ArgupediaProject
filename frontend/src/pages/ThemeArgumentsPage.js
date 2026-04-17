@@ -4,7 +4,7 @@ import {useAuth} from '../context';
 import {AddArgumentForm, Navbar} from '../components';
 import '../css/pages/ThemeArgumentsPage.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = 'http://localhost:8000';
 
 const buildPreview = (template, fieldValues) => {
   if (!template) return null;

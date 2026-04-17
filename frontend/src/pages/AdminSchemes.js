@@ -1,8 +1,9 @@
 import React, {useState, useEffect} from 'react';
 import {Navbar, ConfirmDialog, TrashIcon, AddSchemeForm, AddCriticalQuestionForm} from '../components';
+import {useAuth} from '../context';
 import '../css/pages/AdminSchemes.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = 'http://localhost:8000';
 
 const AdminSchemes = () => {
   const [schemes, setSchemes] = useState([]);
@@ -20,7 +21,7 @@ const AdminSchemes = () => {
     });
     if (res.ok) {
       const data = await res.json();
-      setSchemes(data);
+      setSchemes(data.results ?? data);
     }
     setLoading(false);
   };
@@ -80,7 +81,7 @@ const AdminSchemes = () => {
             <p>Loading schemes...</p>
           ) : (
             <div className="schemes-list">
-              {schemes.map((scheme) => (
+              {(schemes ?? []).map((scheme) => (
                 <div key={scheme.id} className="scheme-card">
                   <div className="scheme-header">
                     <h3>{scheme.name}</h3>
@@ -97,10 +98,10 @@ const AdminSchemes = () => {
                   <div className="critical-questions">
                     <h4>Critical Questions</h4>
                     <div className="cq-list">
-                      {scheme.critical_questions.map((cq) => (
+                      {(scheme.critical_questions ?? []).map((cq) => (
                         <div key={cq.id} className="cq-card">
                           <span>{cq.question}</span>
-                          <button className="btn-delete-small" onClick={() => handleDeleteCQ(cq.id)}>
+                          <button className="btn-delete-small" aria-label={`delete-cq-${cq.id}`} onClick={() => handleDeleteCQ(cq.id)}>
                             <TrashIcon />
                           </button>
                         </div>

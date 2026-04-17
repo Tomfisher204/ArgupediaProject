@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {useAuth} from '../context';
 
-const API = process.env.REACT_APP_API_URL;
+const API = 'http://localhost:8000';
 
 const AddSchemeForm = ({onClose, onSuccess}) => {
   const {getValidAccessToken} = useAuth();

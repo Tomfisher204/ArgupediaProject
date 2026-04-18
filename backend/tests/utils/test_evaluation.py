@@ -1,85 +1,94 @@
 from django.test import TestCase
-from backend.models import Argument, ArgumentScheme, ArgumentTheme, ArgumentLink, CriticalQuestion
-from backend.utils.evaluation import evaluate_and_propagate, _evaluate_single
+from backend.models import Argument, ArgumentScheme, ArgumentTheme, ArgumentLink, CriticalQuestion, User
+from backend.utils.evaluation import evaluate_and_propagate, _evaluate_single, _compute_is_winning
 
-_counter = 0
 
-def next_id():
-    global _counter
-    _counter += 1
-    return _counter
+def make_user(username="eval_user", email="eval@test.com", password="Password123"):
+    return User.objects.create(username=username, email=email, password=password)
 
-def make_user():
-    from backend.models import User
-    i = next_id()
-    return User.objects.create(
-        username=f"user_{i}",
-        email=f"user_{i}@test.com",
-        password="x"
-    )
-
-def make_scheme():
-    i = next_id()
+def make_scheme(name="eval_scheme", created_by=None):
     return ArgumentScheme.objects.create(
-        name=f"scheme_{i}",
-        created_by=make_user(),
-        template="t"
+        name=name,
+        created_by=created_by or make_user(username="scheme_user", email="scheme@test.com"),
+        template="t",
     )
 
-def make_theme():
-    i = next_id()
+def make_theme(title="eval_theme", creator=None):
     return ArgumentTheme.objects.create(
-        title=f"theme_{i}",
-        creator=make_user()
+        title=title,
+        creator=creator or make_user(username="theme_user", email="theme@test.com"),
     )
 
-def make_argument(is_winning=None):
-    return Argument.objects.create(
-        author=make_user(),
-        scheme=make_scheme(),
-        theme=make_theme(),
-        is_winning=is_winning
-    )
+def make_argument(author, scheme, theme, is_winning=None):
+    return Argument.objects.create(author=author, scheme=scheme, theme=theme, is_winning=is_winning)
 
-def make_link(parent, child):
-    cq = CriticalQuestion.objects.create(
-        scheme=parent.scheme,
-        question=f"q_{next_id()}"
-    )
-    return ArgumentLink.objects.create(
-        parent_argument=parent,
-        child_argument=child,
-        critical_question=cq,
-        attacking=True
-    )
+def make_link(parent, child, attacking=True):
+    cq = CriticalQuestion.objects.create(scheme=parent.scheme, question="Is this valid?")
+    return ArgumentLink.objects.create(parent_argument=parent, child_argument=child, critical_question=cq, attacking=attacking)
+
 
 class EvaluationTests(TestCase):
 
-    def test_evaluate_single_updates_state(self):
-        parent = make_argument()
-        child = make_argument()
-        make_link(parent, child)
+    def setUp(self):
+        self.user = make_user()
+        self.scheme = make_scheme(created_by=self.user)
+        self.theme = make_theme(creator=self.user)
+
+    def make_arg(self, is_winning=None):
+        return make_argument(self.user, self.scheme, self.theme, is_winning=is_winning)
+
+    def test_no_children_returns_true(self):
+        parent = self.make_arg()
+        result = _compute_is_winning(parent)
+        self.assertTrue(result)
+
+    def test_winning_support_makes_parent_winning(self):
+        parent = self.make_arg()
+        for _ in range(5):
+            child = self.make_arg(is_winning=True)
+            make_link(parent, child, attacking=False)
+        result = _compute_is_winning(parent)
+        self.assertTrue(result)
+
+    def test_winning_attack_makes_parent_losing(self):
+        parent = self.make_arg()
+        for _ in range(5):
+            child = self.make_arg(is_winning=True)
+            make_link(parent, child, attacking=True)
+        result = _compute_is_winning(parent)
+        self.assertFalse(result)
+
+    def test_balanced_children_returns_none(self):
+        parent = self.make_arg()
+        make_link(parent, self.make_arg(is_winning=True), attacking=False)
+        make_link(parent, self.make_arg(is_winning=True), attacking=True)
+        result = _compute_is_winning(parent)
+        self.assertIsNone(result)
+
+    def test_evaluate_single_no_change_returns_false(self):
+        parent = self.make_arg(is_winning=True)
         result = _evaluate_single(parent)
-        self.assertIn(result, [True, False, None])
+        self.assertFalse(result)
 
-    def test_evaluate_and_propagate_runs_without_error(self):
-        parent = make_argument()
-        child = make_argument()
-        make_link(parent, child)
-        evaluate_and_propagate(child)
+    def test_evaluate_single_changed_returns_true(self):
+        parent = self.make_arg(is_winning=False)
+        result = _evaluate_single(parent)
+        self.assertTrue(result)
 
-    def test_child_supporting_makes_parent_winning(self):
-        parent = make_argument(is_winning=False)
-        child = make_argument(is_winning=True)
-        make_link(parent, child)
-        evaluate_and_propagate(child)
-        parent.refresh_from_db()
-        self.assertIsNotNone(parent.is_winning)
-
-    def test_child_attacking_makes_parent_less_likely_winning(self):
-        parent = make_argument(is_winning=True)
-        child = make_argument(is_winning=False)
-        make_link(parent, child)
+    def test_propagate_stops_when_no_change(self):
+        parent = self.make_arg(is_winning=True)
+        child = self.make_arg(is_winning=True)
+        make_link(parent, child, attacking=False)
         evaluate_and_propagate(child)
         parent.refresh_from_db()
         self.assertIsNotNone(parent.is_winning)
+
+    def test_propagate_updates_grandparent(self):
+        grandparent = self.make_arg(is_winning=False)
+        parent = self.make_arg(is_winning=False)
+        child = self.make_arg(is_winning=True)
+        make_link(grandparent, parent, attacking=False)
+        make_link(parent, child, attacking=False)
+        evaluate_and_propagate(child)
+        grandparent.refresh_from_db()
+        self.assertIsNotNone(grandparent.is_winning)

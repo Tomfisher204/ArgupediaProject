@@ -1,27 +1,25 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
+from unittest.mock import patch
 from backend.models import User, ArgumentScheme, ArgumentTheme, SchemeField, CriticalQuestion, Argument, ArgumentLink
 
 def make_user(username="test_user", email="test@example.com", is_admin=False):
-    return User.objects.create(
-        username=username, first_name="Test", last_name="User",
-        email=email, password="Password123", is_admin=is_admin,
-    )
+    return User.objects.create(username=username, first_name="Test", last_name="User", email=email, password="Password123", is_admin=is_admin)
 
 def make_scheme(name="Test Scheme", created_by=None):
-    return ArgumentScheme.objects.create(
-        name=name,
-        created_by=created_by or make_user(username=f"sc_{name}", email=f"sc_{name}@example.com"),
-    )
+    return ArgumentScheme.objects.create(name=name, created_by=created_by or make_user(username=f"sc_{name}", email=f"sc_{name}@example.com"))
 
-def make_theme(title="Science", creator=None):
-    return ArgumentTheme.objects.create(
-        title=title,
-        creator=creator or make_user(username=f"tc_{title}", email=f"tc_{title}@example.com"),
-    )
+def make_theme(title="Science", creator=None): 
+    return ArgumentTheme.objects.create(title=title, creator=creator or make_user(username=f"tc_{title}", email=f"tc_{title}@example.com"))
 
 def make_argument(author, scheme, theme, **kwargs):
     return Argument.objects.create(author=author, scheme=scheme, theme=theme, **kwargs)
+
+def make_critical_question(scheme, question="Is this argument valid?"):
+    return CriticalQuestion.objects.create(scheme=scheme, question=question)
+
+def make_argument_link(parent_argument, child_argument, critical_question):
+    return ArgumentLink.objects.create(parent_argument=parent_argument, child_argument=child_argument, critical_question_id=critical_question.id)
 
 class ArgumentDetailViewTests(TestCase):
     """Tests for the ArgumentDetailView."""
@@ -72,6 +70,16 @@ class ArgumentDetailViewTests(TestCase):
         response = self.client.delete('/api/arguments/99999/')
         self.assertEqual(response.status_code, 404)
 
+    @patch('backend.views.argument_views.evaluate_and_propagate')
+    def test_delete_calls_evaluate_and_propagate_for_each_parent(self, mock_evaluate):
+        child_argument = make_argument(self.user, self.scheme, self.theme)
+        cq = make_critical_question(self.scheme)
+        make_argument_link(self.argument, child_argument, cq)
+        self.client.force_authenticate(user=self.admin)
+        self.client.delete(f'/api/arguments/{child_argument.id}/')
+        self.assertTrue(Argument.objects.filter(id=self.argument.id).exists())
+        mock_evaluate.assert_called_once_with(self.argument)
+    
 class CreateArgumentViewTests(TestCase):
     """Tests for the CreateArgumentView."""
 

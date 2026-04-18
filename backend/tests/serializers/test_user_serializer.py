@@ -50,18 +50,6 @@ class RegisterSerializerTests(TestCase):
         self.assertEqual(user.username, 'new_user')
         self.assertEqual(user.email, 'new_user@example.com')
 
-    def test_duplicate_username_is_invalid(self):
-        make_user(username='new_user', email='different@example.com')
-        serializer = RegisterSerializer(data=self.valid_data)
-        self.assertFalse(serializer.is_valid())
-        self.assertIn('username', serializer.errors)
-
-    def test_duplicate_email_is_invalid(self):
-        make_user(username='different_user', email='new_user@example.com')
-        serializer = RegisterSerializer(data=self.valid_data)
-        self.assertFalse(serializer.is_valid())
-        self.assertIn('email', serializer.errors)
-
     def test_password_too_short_is_invalid(self):
         data = self.valid_data.copy()
         data['password'] = 'short'

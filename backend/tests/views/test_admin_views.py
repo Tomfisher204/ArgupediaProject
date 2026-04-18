@@ -1,5 +1,6 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
+from unittest.mock import patch
 from backend.models import User, ArgumentScheme, ArgumentTheme, CriticalQuestion, Argument, ThemeRequest
 
 def make_user(username="test_user", email="test@example.com", is_admin=False):
@@ -90,6 +91,12 @@ class AdminThemeViewTests(TestCase):
         self.client.force_authenticate(user=make_user(username="regular", email="regular@example.com"))
         response = self.client.delete(f'/api/admin/theme/{self.theme.id}/')
         self.assertEqual(response.status_code, 403)
+
+    def test_delete_theme_returns_400_on_exception(self):
+        with patch.object(ArgumentTheme, 'delete', side_effect=Exception("forced error")):
+            response = self.client.delete(f'/api/admin/theme/{self.theme.id}/')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['error'], 'Cannot delete theme')
 
 class AdminThemeRequestsViewTests(TestCase):
     def setUp(self):

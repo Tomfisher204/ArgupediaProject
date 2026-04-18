@@ -167,8 +167,6 @@ class AdminSchemesView(APIView):
         )
 
     def delete(self, request, scheme_id=None):
-        if not scheme_id:
-            return Response({'error': 'scheme_id is required'}, status=status.HTTP_400_BAD_REQUEST)
         scheme = get_object_or_404(ArgumentScheme, id=scheme_id)
         scheme.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -192,8 +190,6 @@ class AdminCriticalQuestionsView(APIView):
         return Response({'id': cq.id, 'question': cq.question, 'two_way': cq.two_way}, status=status.HTTP_201_CREATED)
     
     def delete(self, request, cq_id=None):
-        if not cq_id:
-            return Response({'error': 'cq_id is required'}, status=status.HTTP_400_BAD_REQUEST)
         cq = get_object_or_404(CriticalQuestion, id=cq_id)
         cq.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

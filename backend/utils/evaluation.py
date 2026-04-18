@@ -38,8 +38,6 @@ def evaluate_and_propagate(argument):
     queue: list[Argument] = [argument]
     while queue:
         current = queue.pop()
-        if current.id in visited:
-            continue
         visited.add(current.id)
         changed = _evaluate_single(current)
         if not changed:

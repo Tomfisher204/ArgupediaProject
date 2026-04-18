@@ -69,20 +69,9 @@ describe('Dashboard', () => {
   });
 
   test('shows empty state when no arguments', async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({results: [], count: 0}),
-    });
-    useAuth.mockReturnValue({
-      user: mockUser,
-      loading: false,
-      getValidAccessToken: jest.fn().mockResolvedValue('tok'),
-    });
+    global.fetch = jest.fn().mockResolvedValue({ok: true, json: async () => ({results: [], count: 0})});
+    useAuth.mockReturnValue({user: mockUser, loading: false, getValidAccessToken: jest.fn().mockResolvedValue('tok')});
     renderPage();
-    await waitFor(() => {
-      expect(
-        screen.getByText(/haven't created any arguments/i)
-      ).toBeInTheDocument();
-    });
+    await waitFor(() => {expect(screen.getByText(/haven't created any arguments/i)).toBeInTheDocument()});
   });
 });

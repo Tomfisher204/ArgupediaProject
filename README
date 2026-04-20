@@ -1,0 +1,72 @@
+# Argupedia Project
+
+## Setup Instructions
+
+To start the front end and backend of the project using one command run:
+python run.py
+
+Alternatively each individual step is outlined below if this fails. To access the seeded accounts use the username 'johnd1' and password 'Password123' for the regular user and the same password with the username 'admin' for the admin account.
+
+### 1. Clone or Extract Project
+
+Ensure you are inside the root directory:
+ArgupediaProject/
+
+---
+
+### 2. Backend Setup (Django)
+
+Create a virtual environment:
+python -m venv venv
+
+Activate the virtual environment:
+Windows:
+.\venv\Scripts\Activate
+Mac/Linux:
+source venv/bin/activate
+
+Install dependencies:
+pip install -r requirements.txt
+
+Apply migrations:
+python manage.py migrate
+
+Seed the database:
+python manage.py seed
+
+Run the backend server:
+python manage.py runserver
+
+---
+
+### 3. Frontend Setup (React)
+
+Open a new terminal and activate the virtual environment again (if needed):
+.\venv\Scripts\Activate
+
+Navigate to frontend folder:
+cd frontend
+
+Install frontend dependencies:
+npm install
+
+Run the frontend:
+npm start
+
+---
+
+## Running Tests
+
+Backend tests:
+python manage.py test
+
+Frontend tests:
+npm test
+
+---
+
+## Notes
+
+* Ensure Node.js and Python are installed.
+* Backend runs on default Django port (8000).
+* Frontend runs on default React port (3000).
